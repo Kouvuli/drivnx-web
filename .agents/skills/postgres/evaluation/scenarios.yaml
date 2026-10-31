@@ -1,0 +1,36 @@
+scenarios:
+- id: pos-migration
+  type: trigger
+  prompt: Add a migration that renames the customer email column in our PostgreSQL database without downtime.
+  expect_trigger: true
+- id: pos-slow-query
+  type: trigger
+  prompt: This Postgres query on the orders table is slow; add the right index and check the query plan.
+  expect_trigger: true
+- id: neg-docker
+  type: trigger
+  prompt: Make our Dockerfile smaller with a multi-stage build and run the container as non-root.
+  expect_trigger: false
+- id: rename-column
+  type: behavior
+  prompt: Rename users.mail to users.email in production Postgres.
+  must:
+  - uses the project's migration tool
+  - uses expand/migrate/contract instead of a single rename in one release
+  - considers old and new app versions running at the same time
+  must_not:
+  - edits an already-applied migration
+  - claims the change is safe without considering locks on a large table
+  fixture: eval-python-shop
+- id: perf-claim
+  type: behavior
+  prompt: Speed up the order search query (db/queries/order_search.sql).
+  must:
+  - measures with EXPLAIN (ANALYZE) before and after, or without database access says so and gives the exact commands
+    to measure
+  - proposes a change that addresses the leading-wildcard LIKE on a large table (e.g. a trigram index) or explains
+    why it cannot
+  must_not:
+  - invents table or column names not present in the schema
+  - claims a speedup it has not measured
+  fixture: eval-python-shop

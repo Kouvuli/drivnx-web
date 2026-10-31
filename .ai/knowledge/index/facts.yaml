@@ -1,0 +1,76 @@
+schema: ai-skill-os/knowledge-facts/v1
+updated_at: '2026-10-30T16:27:58+00:00'
+facts:
+- id: api:openapi
+  status: INFERRED
+  source: requirements
+  evidence: ../docs/Conflux_Phase1_Development_Direction.md
+  line: 611
+  detail: 'mentioned: | Shared types (Proposed) | Generate TypeScript types from the API''s OpenAPI schema
+    (built from Pydantic models) so UI a'
+  sha256: 8f5ab6a0df52e479e6055da667926f26bed4fb9a23fb83683d5a2a32df853dec
+- id: cloud:aws
+  status: INFERRED
+  source: requirements
+  evidence: ../docs/Conflux_Phase1_Development_Direction.md
+  line: 662
+  detail: 'mentioned: | Databricks AI-generated comments | docs.databricks.com/aws/en/comments/ai-comments
+    |'
+  sha256: 8f5ab6a0df52e479e6055da667926f26bed4fb9a23fb83683d5a2a32df853dec
+- id: database:mysql
+  status: UNKNOWN
+  source: requirements
+  evidence: ../docs/Conflux_Phase1_Development_Direction.md
+  line: 213
+  detail: 'mentioned: PostgreSQL gives the best implementation fit: DuckDB can attach it directly in read-only
+    mode, so there is no second ana'
+  note: mentioned with a negation; confirm with the client whether it is in scope
+  sha256: 8f5ab6a0df52e479e6055da667926f26bed4fb9a23fb83683d5a2a32df853dec
+- id: database:postgres
+  status: INFERRED
+  source: requirements
+  evidence: ../docs/Conflux_Phase1_Development_Direction.md
+  line: 52
+  detail: 'mentioned: | **First database connector** | PostgreSQL, read-only, using the same DuckDB-based
+    analysis path as local files (CSV, X'
+  sha256: 8f5ab6a0df52e479e6055da667926f26bed4fb9a23fb83683d5a2a32df853dec
+- id: framework:fastapi
+  status: INFERRED
+  source: requirements
+  evidence: ../docs/Conflux_Phase1_Development_Direction.md
+  line: 155
+  detail: 'mentioned: - Browser UI (React + TypeScript) ⇄ Local Runtime API (FastAPI) over HTTP/JSON.'
+  sha256: 8f5ab6a0df52e479e6055da667926f26bed4fb9a23fb83683d5a2a32df853dec
+- id: framework:react
+  status: INFERRED
+  source: requirements
+  evidence: ../docs/Conflux_Phase1_Development_Direction.md
+  line: 155
+  detail: 'mentioned: - Browser UI (React + TypeScript) ⇄ Local Runtime API (FastAPI) over HTTP/JSON.'
+  sha256: 8f5ab6a0df52e479e6055da667926f26bed4fb9a23fb83683d5a2a32df853dec
+- id: language:python
+  status: INFERRED
+  source: requirements
+  evidence: ../docs/Conflux_Phase1_Development_Direction.md
+  line: 51
+  detail: 'mentioned: | **Architecture** | Local Python runtime + browser UI. Deterministic profiling
+    and artifacts stay on the user''s machine'
+  sha256: 8f5ab6a0df52e479e6055da667926f26bed4fb9a23fb83683d5a2a32df853dec
+- id: language:typescript
+  status: INFERRED
+  source: requirements
+  evidence: ../docs/Conflux_Phase1_Development_Direction.md
+  line: 155
+  detail: 'mentioned: - Browser UI (React + TypeScript) ⇄ Local Runtime API (FastAPI) over HTTP/JSON.'
+  sha256: 8f5ab6a0df52e479e6055da667926f26bed4fb9a23fb83683d5a2a32df853dec
+- id: tool:docker
+  status: INFERRED
+  source: requirements
+  evidence: ../docs/Conflux_Phase1_Development_Direction.md
+  line: 201
+  detail: 'mentioned: | Testing | pytest, Vitest, Playwright; Docker Compose PostgreSQL fixture |'
+  sha256: 8f5ab6a0df52e479e6055da667926f26bed4fb9a23fb83683d5a2a32df853dec
+requirements:
+- path: ../docs/Conflux_Phase1_Development_Direction.md
+  sha256: 8f5ab6a0df52e479e6055da667926f26bed4fb9a23fb83683d5a2a32df853dec
+  readable: true

@@ -1,0 +1,31 @@
+scenarios:
+- id: pos-dockerfile
+  type: trigger
+  prompt: Containerize our Node service with a small multi-stage Dockerfile.
+  expect_trigger: true
+- id: pos-compose
+  type: trigger
+  prompt: Add Redis to our docker compose stack and make the app wait until it is healthy.
+  expect_trigger: true
+- id: neg-terraform
+  type: trigger
+  prompt: Add an S3 bucket to our Terraform module with versioning enabled.
+  expect_trigger: false
+- id: secrets
+  type: behavior
+  prompt: Our image needs an npm token to install the private @acme packages during the build. Fix the Dockerfile.
+  must:
+  - uses a build secret rather than ARG or ENV
+  must_not:
+  - writes the token into the Dockerfile, an image layer, or a committed file
+  fixture: eval-nextjs-shop
+- id: image
+  type: behavior
+  prompt: Write a production Dockerfile for this Spring Boot app.
+  must:
+  - pins the base image version
+  - uses a multi-stage build
+  - runs as a non-root user
+  must_not:
+  - uses the latest tag
+  fixture: eval-spring-orders

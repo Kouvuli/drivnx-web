@@ -1,0 +1,113 @@
+schema: ai-skill-os/manifest/v1
+project:
+  name: conflux-web
+mode: portable
+adapters:
+- agents
+- claude
+skills:
+- name: acceptance-criteria
+  reason: core skill (always on)
+- name: accessibility
+  reason: requested
+- name: api
+  reason: requested
+- name: architecture
+  reason: core skill (always on)
+- name: architecture-diff
+  reason: core skill (always on)
+- name: brainstorm
+  reason: core skill (always on)
+- name: ci-cd
+  reason: requested
+- name: code-review
+  reason: core skill (always on)
+- name: database-engineer
+  reason: requested
+- name: debugging
+  reason: core skill (always on)
+- name: delivery
+  reason: core skill (always on)
+- name: docker
+  reason: requested
+- name: documentation
+  reason: core skill (always on)
+- name: domain-modeling
+  reason: core skill (always on)
+- name: finish-branch
+  reason: requested
+- name: frontend-design
+  reason: requested
+- name: frontend-testing
+  reason: requested
+- name: implementation
+  reason: core skill (always on)
+- name: knowledge-first
+  reason: core skill (always on)
+- name: knowledge-update
+  reason: core skill (always on)
+- name: next-step
+  reason: core skill (always on)
+- name: performance
+  reason: core skill (always on)
+- name: planning
+  reason: core skill (always on)
+- name: postgres
+  reason: requested
+- name: python
+  reason: requested
+- name: react
+  reason: requested
+- name: refactoring
+  reason: requested
+- name: requirements
+  reason: core skill (always on)
+- name: research
+  reason: requested
+- name: resolving-merge-conflicts
+  reason: requested
+- name: retrospective
+  reason: core skill (always on)
+- name: search-first
+  reason: core skill (always on)
+- name: security
+  reason: core skill (always on)
+- name: simplicity-guard
+  reason: core skill (always on)
+- name: subagent-development
+  reason: core skill (always on)
+- name: tdd
+  reason: core skill (always on)
+- name: testing
+  reason: core skill (always on)
+- name: verification
+  reason: core skill (always on)
+- name: web-design-guidelines
+  reason: requested
+- name: work-branch
+  reason: requested
+excluded: []
+hooks:
+- config-protection
+- dangerous-commands
+- dependency-lock
+- project-checks
+- secret-scan
+- sensitive-files
+commands: {}
+requirements:
+  paths:
+  - ../docs/Conflux_Phase1_Development_Direction.md
+checks:
+  'on':
+  - pre-delivery
+  timeout: 900
+policy:
+  install_trust:
+  - trusted
+  deny_capabilities: []
+  auto_update: false
+agents:
+- explorer
+- knowledge-curator
+- reviewer

@@ -1,0 +1,37 @@
+scenarios:
+- id: pos-endpoint
+  type: trigger
+  prompt: Design a REST endpoint for cancelling an order - route, status codes, error responses and idempotency.
+  expect_trigger: true
+- id: pos-contract
+  type: trigger
+  prompt: We need to rename a field in our public API response. How do we keep backward compatibility and update the OpenAPI contract?
+  expect_trigger: true
+- id: neg-css
+  type: trigger
+  prompt: Make the product cards on the home page look nicer with better spacing and typography.
+  expect_trigger: false
+- id: cancel-endpoint
+  type: behavior
+  prompt: Add an endpoint so a customer can cancel their own order. Follow the existing API in shop/routes.py and shop/api.py.
+  must:
+  - follows the existing route style in shop/routes.py (for example an action path like /api/orders/{id}/cancel)
+  - only lets the owner cancel the order and treats other users' orders as not found, like add_coupon does
+  - defines what happens when the order cannot be cancelled in its current state (for example a conflict error)
+  - adds tests for success, not found or not owned, and invalid state
+  must_not:
+  - invents fields, statuses or business rules without marking them as assumptions or asking
+  - returns success for an order the caller does not own
+  fixture: eval-python-shop
+- id: knowledge-usage
+  type: behavior
+  prompt: Add an endpoint that lists the current customer's orders that have at least one coupon applied.
+  must:
+  - reads the project knowledge in .ai/knowledge/ before designing the endpoint
+  - follows the recorded pagination decision (limit with default 20 and maximum 100, an opaque cursor, and a response with items and next_cursor)
+  - only returns the current customer's orders, as the recorded ownership rule says
+  - adds tests for pagination and ownership
+  must_not:
+  - uses offset pagination or returns an unbounded list
+  - contradicts the knowledge without saying so and citing a reason
+  fixture: eval-python-shop-knowledge

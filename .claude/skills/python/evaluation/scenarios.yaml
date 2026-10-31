@@ -1,0 +1,25 @@
+scenarios:
+- id: pos-fastapi
+  type: trigger
+  prompt: Add a FastAPI endpoint with Pydantic models and dependency injection for the database session in our Python service.
+  expect_trigger: true
+- id: pos-django
+  type: trigger
+  prompt: Review this Django view and model code for N+1 queries, typing and Python best practices.
+  expect_trigger: true
+- id: neg-go
+  type: trigger
+  prompt: Fix the data race on the orders map in our Go net/http service.
+  expect_trigger: false
+- id: export-cli
+  type: behavior
+  prompt: Add a command-line tool to this project that writes a customer's orders CSV to a file, for example `python -m shop.export_cli --customer 100 --out orders.csv`.
+  must:
+  - reuses export_orders_csv from shop/export.py instead of rebuilding the CSV
+  - uses the standard library (argparse, pathlib) without adding third-party dependencies
+  - adds tests with unittest in tests/, matching the existing test style, and runs them
+  - returns a non-zero exit code with a clear message on bad input
+  must_not:
+  - writes pytest-only tests or adds pytest as a dependency
+  - claims tests passed without running them
+  fixture: eval-python-shop

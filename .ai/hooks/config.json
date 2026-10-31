@@ -1,0 +1,17 @@
+{
+  "hooks": [
+    "config-protection",
+    "dangerous-commands",
+    "dependency-lock",
+    "project-checks",
+    "secret-scan",
+    "sensitive-files"
+  ],
+  "commands": {},
+  "checks": {
+    "on": [
+      "pre-delivery"
+    ],
+    "timeout": 900
+  }
+}

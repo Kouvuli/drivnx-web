@@ -1,0 +1,85 @@
+evaluator: runner:claude
+model: tool default
+skill: postgres
+version: 1.0.1
+types:
+- behavior
+results:
+- id: rename-column
+  pass: true
+  checks:
+  - id: must-1
+    criterion: 'MUST: uses the project''s migration tool'
+    pass: true
+    reason: The agent added Flyway-style versioned files (V3–V6) in db/migrations/, with per-script .conf
+      files, which follows the project's existing migration convention.
+  - id: must-2
+    criterion: 'MUST: uses expand/migrate/contract instead of a single rename in one release'
+    pass: true
+    reason: The agent added email next to mail with a sync trigger (expand), backfilled in batches (migrate),
+      and held the DROP COLUMN for a later V7 release (contract).
+  - id: must-3
+    criterion: 'MUST: considers old and new app versions running at the same time'
+    pass: true
+    reason: The V3 comment says 'Old code writes mail, new code writes email', and the bidirectional trigger
+      plus the warning about rolling deploys show it planned for old and new versions running at once.
+  - id: must-not-1
+    criterion: 'MUST NOT: edits an already-applied migration'
+    pass: true
+    reason: The agent only created new files (V3 onward) and did not change any existing migration.
+  - id: must-not-2
+    criterion: 'MUST NOT: claims the change is safe without considering locks on a large table'
+    pass: true
+    reason: 'The agent dealt with locking on the ~2M-row table explicitly: lock_timeout, batched commits,
+      CREATE INDEX CONCURRENTLY, and NOT VALID/VALIDATE constraints, with a locking column in the summary
+      table.'
+  activity: |-
+    $ Skill postgres
+    $ Bash find . -path ./node_modules -prune -o -type f -print | grep -v '^./.claude/skills' | head -100; ls -R .ai/knowledge 2>/dev/null
+    $ Bash cat README.md db/migrations/*.sql .ai-skills-eval; grep -rn "mail" shop tests db docs
+    $ Bash which psql postgres docker pg_ctl flyway 2>&1; ls /usr/lib/postgresql 2>&1
+    ~ (thinking) I'll write this as Flyway migrations using an expand → migrate → contract approach rather than a plain column rename, since a direct rename would break any running app instance or service still reading `users.mail` during deploy.
+    $ Write /home/kali/.ai-skills/cache/ai-skills-eval-postgres-3az7kuar/db/migrations/V3__users_email_expand.sql
+    $ Write /home/kali/.ai-skills/cache/ai-skills-eval-postgres-3az7kuar/db/migrations/V4__users_email_backfill.sql
+    $ Write /home/kali/.ai-skills/cache/ai-skills-eval-postgres-3az7kuar/db/migrations/V4__users_email_backfill.sql.conf
+    $ Write /home/kali/.ai-skills/cache/ai-skills-eval-postgres-3az7kuar/db/migrations/V5__users_email_unique_index.sql
+    $ Write /home/kali/.ai-skills/cache/ai-skills-eval-postgres-3az7kuar/db/migrations/V5__users_email_unique_index.sql.conf
+    $ Write /home/kali/.ai-skills/cache/ai-skills-eval-postgres-3az7kuar/db/migrations/V6__users_email_constraints.sql
+    > I've written the migrations to rename `users.mail` to `users.email`, but nothing has been run anywhere. They also haven't been tested against a real Postgres: the sandbox wouldn't let me check whether Postgres or Docker is available here. Run the full chain on a fresh database and on a copy of produ
+- id: perf-claim
+  pass: true
+  checks:
+  - id: must-1
+    criterion: 'MUST: measures with EXPLAIN (ANALYZE) before and after, or without database access says
+      so and gives the exact commands to measure'
+    pass: true
+    reason: The agent says it couldn't reach Postgres and has no before/after EXPLAIN ANALYZE, then gives
+      the exact `EXPLAIN (ANALYZE, BUFFERS)` query and says to run it before and after V4.
+  - id: must-2
+    criterion: 'MUST: proposes a change that addresses the leading-wildcard LIKE on a large table (e.g.
+      a trigram index) or explains why it cannot'
+    pass: true
+    reason: The agent explains that the leading `%` wildcard rules out an ordinary index and forces a
+      full scan of about 40M rows, then adds a pg_trgm GIN index on `lower(customer_email)` with `CREATE
+      INDEX CONCURRENTLY`.
+  - id: must-not-1
+    criterion: 'MUST NOT: invents table or column names not present in the schema'
+    pass: true
+    reason: The agent read the existing migrations, and it only uses the `orders` table and columns already
+      in the original query (`customer_email`, `created_at`, `id`, `status`, `total`); the only new name
+      is the index it creates.
+  - id: must-not-2
+    criterion: 'MUST NOT: claims a speedup it has not measured'
+    pass: true
+    reason: The agent says the index 'should speed up' the search and states 'I haven't measured anything',
+      presenting the plan change only as what to expect when verifying.
+  activity: |-
+    $ Skill postgres
+    $ Bash find . -path ./node_modules -prune -o -type f -not -path './.claude/*' -print | head -100 && cat db/queries/order_search.sql
+    $ Bash cat db/migrations/*.sql README.md; ls -a .ai 2>/dev/null; ls .ai/knowledge 2>/dev/null; grep -rn "order_search\|customer_email" shop tests | head -30; which psql docker pg_ctl 2>/dev/null
+    $ Bash docker info --format '{{.ServerVersion}}' 2>&1 | head -3; docker images postgres 2>&1 | head; psql --version; pg_lsclusters 2>&1 | head
+    > I couldn't run anything against Postgres, so this is unbenchmarked. Here's the change.
+    $ Write /home/kali/.ai-skills/cache/ai-skills-eval-postgres-d3nw0n7y/db/migrations/V3__enable_pg_trgm.sql
+    $ Write /home/kali/.ai-skills/cache/ai-skills-eval-postgres-d3nw0n7y/db/migrations/V4__orders_customer_email_trgm_index.sql
+    $ Edit /home/kali/.ai-skills/cache/ai-skills-eval-postgres-d3nw0n7y/db/queries/order_search.sql
+    > I've added a trigram index that should speed up the order search, but I haven't measured anything. My attempt to check for a local Postgres (Docker or psql) was blocked: this session can't approve permission prompts. So I have no before/after `EXPLAIN ANALYZE`. **Why it's slow:** the search is `lowe

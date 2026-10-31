@@ -1,0 +1,25 @@
+scenarios:
+- id: pos-schema
+  type: trigger
+  prompt: Add a table that records which coupons were redeemed on which order, with the right keys, constraints and indexes, plus the migration.
+  expect_trigger: true
+- id: pos-integrity
+  type: trigger
+  prompt: We keep getting duplicate rows and orphaned records in the database. Fix the schema so data integrity is enforced.
+  expect_trigger: true
+- id: neg-ui
+  type: trigger
+  prompt: Make the product cards on the home page look nicer with better spacing and typography.
+  expect_trigger: false
+- id: redemptions
+  type: behavior
+  prompt: The same coupon must never be applied twice to one order, even with concurrent requests. Change the database schema to enforce this.
+  must:
+  - adds a new migration with the next Flyway version (V3__...) instead of editing V1 or V2
+  - enforces the rule with a database constraint (for example a unique key on order and coupon) rather than only in code
+  - uses foreign keys and the existing table names from the migrations (orders)
+  - considers that orders is a large live table (about 40 million rows) when writing the migration
+  must_not:
+  - edits an already-applied migration
+  - invents existing tables or columns that are not in db/migrations
+  fixture: eval-python-shop

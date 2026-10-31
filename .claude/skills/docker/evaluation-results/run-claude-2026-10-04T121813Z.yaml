@@ -1,0 +1,61 @@
+evaluator: runner:claude
+model: tool default
+skill: docker
+version: 1.0.1
+types:
+- behavior
+results:
+- id: secrets
+  pass: true
+  checks:
+  - id: must-1
+    criterion: 'MUST: uses a build secret rather than ARG or ENV'
+    pass: true
+    reason: The Dockerfile uses `RUN --mount=type=secret,id=npm_token,env=NPM_TOKEN,required=true npm
+      ci` and contains no ARG or ENV for the token.
+  - id: must-not-1
+    criterion: 'MUST NOT: writes the token into the Dockerfile, an image layer, or a committed file'
+    pass: true
+    reason: The token value never appears in the Dockerfile, .dockerignore or any committed file; it is
+      only mounted for one RUN step, and the existing .npmrc reads the `${NPM_TOKEN}` placeholder.
+  activity: |-
+    $ Skill docker
+    $ Bash ls -la && cat Dockerfile; ls .ai/knowledge 2>/dev/null; cat .dockerignore .npmrc package.json docker-compose* compose* 2>/dev/null
+    $ Bash cat README.md .env.example; ls app lib components; which docker
+    $ Write /home/kali/.ai-skills/cache/ai-skills-eval-docker-urnchqek/Dockerfile
+    $ Write /home/kali/.ai-skills/cache/ai-skills-eval-docker-urnchqek/.dockerignore
+    $ Bash timeout 60 docker build --check . 2>&1 | tail -15
+    > I changed the Dockerfile so the npm token is passed in as a BuildKit build secret. The token is never written into the image, so it won't show up in its layers, the build cache or `docker history`. I haven't built or checked the image yet; see the end of this message. **What changed** - **`Dockerfil
+- id: image
+  pass: true
+  checks:
+  - id: must-1
+    criterion: 'MUST: pins the base image version'
+    pass: true
+    reason: Both base images are pinned to specific version tags, maven:3.9.9-eclipse-temurin-21-noble
+      and eclipse-temurin:21.0.5_11-jre-noble, though not by digest.
+  - id: must-2
+    criterion: 'MUST: uses a multi-stage build'
+    pass: true
+    reason: The Dockerfile has a 'build' stage (FROM ... AS build) and a separate runtime stage that pulls
+      the extracted layers in with COPY --from=build.
+  - id: must-3
+    criterion: 'MUST: runs as a non-root user'
+    pass: true
+    reason: The runtime stage creates a system user named 'app' with groupadd/useradd and switches to
+      it with 'USER app' before the ENTRYPOINT.
+  - id: must-not-1
+    criterion: 'MUST NOT: uses the latest tag'
+    pass: true
+    reason: Neither FROM line uses the 'latest' tag; both use explicit version tags.
+  activity: |-
+    $ Skill docker
+    $ Bash find . -path ./.git -prune -o -type f -print | grep -v '^./.claude/skills' | head -100; ls -la .ai/knowledge 2>/dev/null
+    $ Bash cat pom.xml README.md .ai-skills-eval; cat src/main/java/com/example/orders/*.java; ls src/main/resources 2>&1; which docker mvn java
+    $ Bash docker version --format '{{.Server.Version}}' 2>&1; docker buildx version 2>&1 | head -1; timeout 120 docker pull -q eclipse-temurin:21-jre-noble 2>&1 | tail -2
+    $ Edit /home/kali/.ai-skills/cache/ai-skills-eval-docker-0m1cg8xa/pom.xml
+    $ Edit /home/kali/.ai-skills/cache/ai-skills-eval-docker-0m1cg8xa/pom.xml
+    $ Write /home/kali/.ai-skills/cache/ai-skills-eval-docker-0m1cg8xa/src/main/resources/application.properties
+    $ Write /home/kali/.ai-skills/cache/ai-skills-eval-docker-0m1cg8xa/Dockerfile
+    $ Write /home/kali/.ai-skills/cache/ai-skills-eval-docker-0m1cg8xa/.dockerignore
+    > I wrote the Dockerfile, but **I couldn't build or run it**: the `docker` commands needed approval, and this session can't grant it. Nothing below has been tested. ### Changes the app needed - **`pom.xml`: added `spring-boot-maven-plugin`.** Without it, `mvn package` makes a plain jar that can't run
