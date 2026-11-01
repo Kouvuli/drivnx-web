@@ -1,6 +1,6 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-10-30T16:27:58+00:00'
+updated_at: '2026-11-01T14:03:40+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources: {}
 nodes: []
