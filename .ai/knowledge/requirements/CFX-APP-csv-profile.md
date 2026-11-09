@@ -6,10 +6,10 @@ title: "Profile a CSV: correct how it's read, profile it, and see findings with 
 summary: "Correct CSV detection, run a fast or full deterministic profile, read labelled metrics in the Profile tab, and see findings backed by evidence, with only aggregates saved."
 owner: drivnx-web
 lifecycle: approved
-revision: 4
-approved_revision: 4
-approval_evidence: "user approved revision 4 in chat, 2026-11-07 (accepted all recommendations from reviewing T08, including two values for a possible identifier)"
-updated: "2026-11-07"
+revision: 5
+approved_revision: 5
+approval_evidence: "user approved the workspace restructure in chat, 2026-11-09 (revision 5, reference-only)"
+updated: "2026-11-09"
 related: [CFX-APP-first-slice]
 status: CONFIRMED
 ---
@@ -19,7 +19,7 @@ status: CONFIRMED
 ## Problem
 A user can connect a CSV and page through it, but DrivnX doesn't yet tell them anything about their data. This slice delivers M3 for CSV files, so a user gets the first real evidence and findings. Detection can be wrong and observations can't be edited, so the slice also lets users correct how a file is read, which stops wrong evidence being saved.
 
-Source of truth: `../docs/DrivnX_Phase1_Development_Direction.md` (Sections 3, 5, 7, 8 and 10), ADRs 0001, 0002 and 0003 in `docs/adr/`, and the first slice's spec `CFX-APP-first-slice`.
+Source of truth: `../drivnx-docs/docs/DrivnX_Phase1_Development_Direction.md` (Sections 3, 5, 7, 8 and 10), ADRs 0001, 0002 and 0003 in `docs/adr/`, and the first slice's spec `CFX-APP-first-slice`.
 
 ## Scope
 In:
@@ -178,3 +178,4 @@ None blocks approval.
 - Revision 2: AC-20 matches decision 1 of ADR 0004, found while building T05. No change to the behaviour agreed in T05's plan. Approved by the user in chat, 2026-11-06.
 - Revision 3: AC-24 and the findings decision apply "in the first 100,000 rows" only to a fast profile that read only the first rows, found while planning T08. A fast profile of a smaller file reads the whole file, and AC-17 labels its metrics that way. Approved by the user in chat, 2026-11-07.
 - Revision 4: a possible identifier needs at least two non-missing values, not one, found reviewing T08. With one, a column of a single value among blanks was called a possible identifier. It matches the single-value rule agreed in T08's plan. Approved by the user in chat, 2026-11-07.
+- Revision 5: Reference-only change: the workspace is now a plain `DrivnX/` folder with drivnx-docs next to this repo, so `../docs/` becomes `../drivnx-docs/docs/`. No change to behaviour.
