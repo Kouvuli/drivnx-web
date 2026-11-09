@@ -3,8 +3,8 @@
 The DrivnX Phase 1 product: a local Python runtime with a browser UI that connects unfamiliar data and turns it into
 evidence-backed, human-reviewed understanding (Data Profile → Data Dictionary → Data Contract).
 
-- **Source of truth:** [../docs/DrivnX_Phase1_Development_Direction.md](../docs/DrivnX_Phase1_Development_Direction.md)
-  (approved); open findings in [../docs/DrivnX_Phase1_Review_Notes.md](../docs/DrivnX_Phase1_Review_Notes.md)
+- **Source of truth:** [../drivnx-docs/docs/DrivnX_Phase1_Development_Direction.md](../drivnx-docs/docs/DrivnX_Phase1_Development_Direction.md)
+  (approved); open findings in [../drivnx-docs/docs/DrivnX_Phase1_Review_Notes.md](../drivnx-docs/docs/DrivnX_Phase1_Review_Notes.md)
 - **Status:** first vertical slice in progress (`.ai/knowledge/requirements/CFX-APP-first-slice.md`): the runtime, its session protection,
   workspace setup, the app shell, connecting a CSV, paging through its rows, the trust-state core, profile run history rules and contract rules exist.
 - **Stack (§4):** Python 3.12, FastAPI, Pydantic v2, DuckDB, SQLite · React + TypeScript + Vite, TanStack, Radix/shadcn ·
@@ -110,5 +110,5 @@ branches are deleted.
 
 ## AI skills
 
-Set up with `../ai-skills/drivnx-skills.sh` (the shared DrivnX baseline plus this repo's stack skills); the list is in
+Set up with `../drivnx-docs/ai-skills/drivnx-skills.sh` (the shared DrivnX baseline plus this repo's stack skills); the list is in
 `.ai/manifest.yaml`. How to use them, and the workflow for a ticket, are in [CONTRIBUTING.md](CONTRIBUTING.md).
