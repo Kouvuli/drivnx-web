@@ -94,7 +94,9 @@ def test_columns_matching_a_sensitive_field_rule_are_flagged_saying_what_matched
             f"user{row}@example.com,c{row}@example.org,+44 20 7946 {row:04d},"
             f"4111 1111 1111 {row:04d},1990-01-{row % 28 + 1:02d},{row}.5,note {row}\n"
             for row in range(50)
-        )
+        ),
+        encoding="utf-8",
+        newline="",
     )
     source = connect(client, path)
     run = finished(client, start(client, source, "fast"))

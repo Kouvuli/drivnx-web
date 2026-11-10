@@ -162,7 +162,7 @@ ORIGIN = f"http://127.0.0.1:{PORT}"
 
 
 def in_process_client(session: LaunchSession, tmp_path: Path) -> TestClient:
-    (tmp_path / "index.html").write_text("<html></html>")
+    (tmp_path / "index.html").write_text("<html></html>", encoding="utf-8", newline="")
     workspace = open_workspace(tmp_path / "workspace")
     return TestClient(
         create_app(session, PORT, workspace, tmp_path),
@@ -356,17 +356,17 @@ def test_logs_contain_no_token_or_launch_code(
     # The unreadable row is there because DuckDB's error message quotes the row.
     opened = tmp_path / "opened"
     browser = tmp_path / "browser"
-    browser.write_text(f'#!/bin/sh\nprintf %s "$1" > "{opened}"\n')
+    browser.write_text(f'#!/bin/sh\nprintf %s "$1" > "{opened}"\n', encoding="utf-8", newline="")
     browser.chmod(0o755)
     drivnx = start_drivnx(
         "--port", str(free_port), "--log-level", "trace", browser=f"{browser} %s"
     )
     origin = f"http://127.0.0.1:{free_port}"
     for _ in range(200):
-        if opened.exists() and opened.read_text():
+        if opened.exists() and opened.read_text(encoding="utf-8"):
             break
         time.sleep(0.05)
-    code = opened.read_text().partition("#launch=")[2]
+    code = opened.read_text(encoding="utf-8").partition("#launch=")[2]
     assert code
 
     response = httpx.post(
@@ -379,7 +379,9 @@ def test_logs_contain_no_token_or_launch_code(
     private.write_text(
         "id,note\n1,private-row-value\n"
         + "2,more\n" * 100_000
-        + "x,private-bad-row,y\n"
+        + "x,private-bad-row,y\n",
+        encoding="utf-8",
+        newline="",
     )
     with httpx.Client(
         base_url=origin, cookies=response.cookies, headers={"Origin": origin}

@@ -54,7 +54,9 @@ def test_opens_the_browser_and_keeps_the_url_out_of_the_terminal(
     opened = tmp_path / "opened"
     browser = tmp_path / "browser"
     browser.write_text(
-        f'#!/bin/sh\nprintf %s "$1" > "{opened}.tmp"\nmv "{opened}.tmp" "{opened}"\n'
+        f'#!/bin/sh\nprintf %s "$1" > "{opened}.tmp"\nmv "{opened}.tmp" "{opened}"\n',
+        encoding="utf-8",
+        newline="",
     )
     browser.chmod(0o755)
 
@@ -63,7 +65,7 @@ def test_opens_the_browser_and_keeps_the_url_out_of_the_terminal(
     deadline = time.monotonic() + 10
     while not opened.exists() and time.monotonic() < deadline:
         time.sleep(0.05)
-    url = opened.read_text()
+    url = opened.read_text(encoding="utf-8")
     assert url.startswith(f"http://127.0.0.1:{free_port}/#launch=")
     assert httpx.get(url).status_code == 200
     drivnx.process.terminate()
@@ -134,7 +136,7 @@ def test_a_missing_ui_bundle_gives_a_clear_error(
 def _browser_stand_in(directory: Path, name: str, opened: Path) -> None:
     directory.mkdir()
     script = directory / name
-    script.write_text(f'#!/bin/sh\nprintf %s "$1" > "{opened}"\n')
+    script.write_text(f'#!/bin/sh\nprintf %s "$1" > "{opened}"\n', encoding="utf-8", newline="")
     script.chmod(0o755)
 
 
@@ -169,7 +171,7 @@ def test_with_a_display_the_browser_is_opened(
     deadline = time.monotonic() + 10
     while not opened.exists() and time.monotonic() < deadline:
         time.sleep(0.05)
-    assert "#launch=" in opened.read_text()
+    assert "#launch=" in opened.read_text(encoding="utf-8")
 
 
 @posix_only
@@ -178,7 +180,7 @@ def test_the_terminal_says_how_to_stop_and_what_to_do_if_no_browser_opened(
 ) -> None:
     opened = tmp_path / "opened"
     browser = tmp_path / "browser"
-    browser.write_text(f'#!/bin/sh\nprintf %s "$1" > "{opened}"\n')
+    browser.write_text(f'#!/bin/sh\nprintf %s "$1" > "{opened}"\n', encoding="utf-8", newline="")
     browser.chmod(0o755)
 
     drivnx = start_drivnx(browser=f"{browser} %s")
@@ -186,7 +188,7 @@ def test_the_terminal_says_how_to_stop_and_what_to_do_if_no_browser_opened(
     deadline = time.monotonic() + 10
     while not opened.exists() and time.monotonic() < deadline:
         time.sleep(0.05)
-    code = opened.read_text().partition("#launch=")[2]
+    code = opened.read_text(encoding="utf-8").partition("#launch=")[2]
     drivnx.process.terminate()
     drivnx.process.wait(timeout=10)
     output = drivnx.all_output()

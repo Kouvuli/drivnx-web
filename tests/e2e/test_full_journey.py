@@ -22,7 +22,9 @@ def test_the_journey_through_the_installed_command_on_one_origin(
     elsewhere.mkdir()
     people = tmp_path / "people.csv"
     people.write_text(
-        "id,name\n" + "".join(f"{row},name{row}\n" for row in range(1, 121))
+        "id,name\n" + "".join(f"{row},name{row}\n" for row in range(1, 121)),
+        encoding="utf-8",
+        newline="",
     )
     file_before = (people.read_bytes(), people.stat().st_mtime_ns)
     default = tmp_path / "home" / "DrivnX" / "default"

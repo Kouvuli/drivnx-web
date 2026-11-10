@@ -51,7 +51,9 @@ def add_migration(
         "branch_labels = None\n"
         "depends_on = None\n\n\n"
         "def upgrade() -> None:\n" + indent(upgrade.strip() + "\n", "    ") + "\n\n"
-        "def downgrade() -> None:\n    pass\n"
+        "def downgrade() -> None:\n    pass\n",
+        encoding="utf-8",
+        newline="",
     )
     return directory
 
@@ -437,7 +439,7 @@ def test_opening_tightens_loose_permissions(workspace_dir: Path) -> None:
     stale_wal.write_bytes(b"")
     lock = workspace_dir / ".drivnx.lock"
     notes = workspace_dir / "notes.txt"
-    notes.write_text("the user's own file")
+    notes.write_text("the user's own file", encoding="utf-8", newline="")
     notes.chmod(0o644)
     workspace_dir.chmod(0o755)
     for path in (database, backup, stale_wal, lock):

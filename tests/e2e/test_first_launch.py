@@ -40,7 +40,9 @@ def run_drivnx_and_catch_the_browser(
     opened = tmp_path / "opened"
     browser = tmp_path / "browser"
     browser.write_text(
-        f'#!/bin/sh\nprintf %s "$1" > "{opened}.tmp"\nmv "{opened}.tmp" "{opened}"\n'
+        f'#!/bin/sh\nprintf %s "$1" > "{opened}.tmp"\nmv "{opened}.tmp" "{opened}"\n',
+        encoding="utf-8",
+        newline="",
     )
     browser.chmod(0o755)
 
@@ -48,7 +50,7 @@ def run_drivnx_and_catch_the_browser(
     deadline = time.monotonic() + 15
     while not opened.exists() and time.monotonic() < deadline:
         time.sleep(0.05)
-    return opened.read_text()
+    return opened.read_text(encoding="utf-8")
 
 
 @posix_only

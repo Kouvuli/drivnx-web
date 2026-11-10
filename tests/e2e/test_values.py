@@ -25,7 +25,9 @@ def test_a_flagged_columns_values_show_after_the_extra_confirmation(
     path = tmp_path / "people.csv"
     path.write_text(
         "email,amount\n"
-        + "".join(f"user{row}@example.com,{row % 10}\n" for row in range(50))
+        + "".join(f"user{row}@example.com,{row % 10}\n" for row in range(50)),
+        encoding="utf-8",
+        newline="",
     )
     connect(app, path)
     expect(details_of(app, path.name)).to_be_visible()

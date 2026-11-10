@@ -43,7 +43,9 @@ def planted_missing(path: Path) -> Path:
     blank = {*range(10, 13), *range(120_000, 120_007)}
     path.write_text(
         "id,note\n"
-        + "".join(f"{row},{'' if row in blank else 'x'}\n" for row in range(150_001))
+        + "".join(f"{row},{'' if row in blank else 'x'}\n" for row in range(150_001)),
+        encoding="utf-8",
+        newline="",
     )
     return path
 
@@ -68,7 +70,7 @@ def test_a_full_run_is_recorded_as_reading_every_row(
 ) -> None:
     # CFX-APP-csv-profile/AC-08: a full run has no sample, so no sample size or strategy.
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     run = finished(client, start(client, connect(client, path), "full"))
 
     stored = read_profile_run(client.app.state.workspace.engine, run["id"])
@@ -86,7 +88,9 @@ def test_a_quote_never_closed_after_the_first_rows_fails_a_full_run(
         "id,name\n"
         + "".join(f"{row},n{row}\n" for row in range(120_000))
         + '2,"oops\n'
-        + "".join(f"{row},n{row}\n" for row in range(500))
+        + "".join(f"{row},n{row}\n" for row in range(500)),
+        encoding="utf-8",
+        newline="",
     )
     source = connect(client, path)
 
@@ -174,7 +178,7 @@ def test_a_run_that_has_ended_or_doesnt_exist_cant_be_cancelled(
 ) -> None:
     # CFX-APP-csv-profile/AC-10
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     run = finished(client, start(client, connect(client, path), "full"))
 
     ended = cancel(client, run)
@@ -227,7 +231,7 @@ def test_a_cancel_arriving_as_a_run_finishes_is_refused(
     # accepted must be what the run ends as. This one arrives once the run has chosen `completed`,
     # and waits for it to be saved.
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     source = connect(client, path)
     finishing = threading.Event()
     finish_profile_run = profile_jobs.finish_profile_run
@@ -255,7 +259,9 @@ def test_a_cancel_while_saving_saves_no_more(
     path = tmp_path / "wide.csv"
     columns = 300
     path.write_text(
-        ",".join(f"c{number}" for number in range(columns)) + "\n" + ",".join("x" * columns) + "\n"
+        ",".join(f"c{number}" for number in range(columns)) + "\n" + ",".join("x" * columns) + "\n",
+        encoding="utf-8",
+        newline="",
     )
     source = connect(client, path)
     saving, cancelled = threading.Event(), threading.Event()
@@ -287,7 +293,7 @@ def test_shutting_down_stops_a_run_and_leaves_it_to_be_marked_interrupted(
     # because DrivnX did isn't one the user cancelled, so the next start marks it `interrupted`.
     ui_dir = tmp_path / "ui"
     ui_dir.mkdir()
-    (ui_dir / "index.html").write_text("<html></html>")
+    (ui_dir / "index.html").write_text("<html></html>", encoding="utf-8", newline="")
     workspace = open_workspace(workspace_dir)
     session = LaunchSession(CLIENT_PORT)
     reading = threading.Event()
@@ -358,7 +364,7 @@ def test_a_cancelled_run_that_cant_record_its_end_still_stops_interrupting(
     # Found reviewing T06: when another program held the workspace past the busy timeout, the
     # cancel's interrupting thread never ended.
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     source = connect(client, path)
     measuring, cancelled = threading.Event(), threading.Event()
     measure_rows = profile_jobs.measure_rows
@@ -398,7 +404,7 @@ def test_a_cancel_as_a_run_starts_waits_for_its_job(
     # CFX-APP-csv-profile/AC-10: found reviewing T06. The run is visible once it's saved, so a
     # cancel can come before its job is known.
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     source = connect(client, path)
     answers: list[int] = []
     start_only_profile_run = profile_jobs.start_only_profile_run
@@ -427,7 +433,9 @@ def with_copies(path: Path) -> Path:
     path.write_text(
         "id,name\n"
         + "".join(f"{row},n{row}\n" for row in range(150_000))
-        + "7,n7\n" * 3
+        + "7,n7\n" * 3,
+        encoding="utf-8",
+        newline="",
     )
     return path
 
@@ -452,7 +460,11 @@ def meeting_every_kind(path: Path) -> Path:
         f"{row},{'' if row % 4 == 0 else f'n{row % 7}'},FR,{'abc' if row == 29_000 else row % 100}"
         for row in range(30_000)
     ]
-    path.write_text("id,note,country,amount\n" + "\n".join([*rows, rows[-1], rows[-1]]) + "\n")
+    path.write_text(
+        "id,note,country,amount\n" + "\n".join([*rows, rows[-1], rows[-1]]) + "\n",
+        encoding="utf-8",
+        newline="",
+    )
     return path
 
 
@@ -558,7 +570,9 @@ def test_saved_findings_hold_no_column_name_or_value_and_cite_evidence(
         for row in range(300)
     ]
     path.write_text(
-        "Xanthippe_ref,Marmaduke_region,Ptolemy_count,Ermengarde_email\n" + "\n".join(rows) + "\n"
+        "Xanthippe_ref,Marmaduke_region,Ptolemy_count,Ermengarde_email\n" + "\n".join(rows) + "\n",
+        encoding="utf-8",
+        newline="",
     )
     planted = (
         *("Xanthippe", "Marmaduke", "Ptolemy", "Ermengarde"),

@@ -18,7 +18,7 @@ CSV = REPO_ROOT / "testdata/csv/comma_utf8.csv"
 
 
 def violations(page: Page) -> list[str]:
-    page.evaluate(AXE.read_text())
+    page.evaluate(AXE.read_text(encoding="utf-8"))
     found = page.evaluate(
         "levels => axe.run(document, {runOnly: {type: 'tag', values: levels}})", LEVELS
     )["violations"]
@@ -121,7 +121,9 @@ def test_the_journey_works_by_keyboard_alone(
 ) -> None:
     people = tmp_path / "people.csv"
     people.write_text(
-        "id,name\n" + "".join(f"{row},name{row}\n" for row in range(1, 61))
+        "id,name\n" + "".join(f"{row},name{row}\n" for row in range(1, 61)),
+        encoding="utf-8",
+        newline="",
     )
     keyboard = page.keyboard
     page.goto(launch_url)
