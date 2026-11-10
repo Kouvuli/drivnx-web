@@ -49,7 +49,11 @@ def test_a_row_used_as_column_names_is_gone_after_the_correction(
 ) -> None:
     # CFX-APP-csv-profile/AC-04
     path = tmp_path / "people.csv"
-    path.write_text("ZanzibarAnn,ZanzibarParis\nBob,Lyon\nCid,Nice\nDee,Metz\n")
+    path.write_text(
+        "ZanzibarAnn,ZanzibarParis\nBob,Lyon\nCid,Nice\nDee,Metz\n",
+        encoding="utf-8",
+        newline="",
+    )
     source = connect(client, path)
     assert source["has_header"] is True
     assert PLANTED in raw_bytes(workspace_dir)
@@ -65,7 +69,11 @@ def test_earlier_datasets_get_generated_names_and_keep_their_ids(
 ) -> None:
     # CFX-APP-csv-profile/AC-04: evidence points at a field's id, so that mustn't change.
     path = tmp_path / "people.csv"
-    path.write_text("ZanzibarAnn,ZanzibarParis\nBob,Lyon\nCid,Nice\nDee,Metz\n")
+    path.write_text(
+        "ZanzibarAnn,ZanzibarParis\nBob,Lyon\nCid,Nice\nDee,Metz\n",
+        encoding="utf-8",
+        newline="",
+    )
     source = connect(client, path)
     before = field_rows(workspace_dir)
 
@@ -82,7 +90,9 @@ def test_names_from_every_earlier_correction_are_gone(
     # CFX-APP-csv-profile/AC-04
     path = tmp_path / "report.csv"
     path.write_text(
-        "ZanzibarTitle;x\nZanzibarLine,y\nZanzibarHeader,z\nBob,Lyon\nCid,Nice\nDee,Metz\n"
+        "ZanzibarTitle;x\nZanzibarLine,y\nZanzibarHeader,z\nBob,Lyon\nCid,Nice\nDee,Metz\n",
+        encoding="utf-8",
+        newline="",
     )
     source = connect(client, path)
 
@@ -104,11 +114,15 @@ def test_a_wide_file_leaves_nothing_behind_in_any_page(
     wide = tmp_path / "wide.csv"
     header = ",".join(f"Zanzibar{number:04}{'x' * 200}" for number in range(400))
     row = ",".join(f"row{number}" for number in range(400))
-    wide.write_text(f"{header}\n{row}\n{row}\n")
+    wide.write_text(f"{header}\n{row}\n{row}\n", encoding="utf-8", newline="")
     source = connect(client, wide)
     for number in range(5):
         other = tmp_path / f"other{number}.csv"
-        other.write_text(",".join(f"c{n}{'y' * 200}" for n in range(200)) + "\n1\n")
+        other.write_text(
+            ",".join(f"c{n}{'y' * 200}" for n in range(200)) + "\n1\n",
+            encoding="utf-8",
+            newline="",
+        )
         connect(client, other)
 
     save(client, source, has_header=False)
@@ -134,10 +148,10 @@ def test_other_sources_keep_their_names(
 ) -> None:
     # CFX-APP-csv-profile/AC-04
     corrected = tmp_path / "people.csv"
-    corrected.write_text("Ann,Paris\nBob,Lyon\nCid,Nice\nDee,Metz\n")
+    corrected.write_text("Ann,Paris\nBob,Lyon\nCid,Nice\nDee,Metz\n", encoding="utf-8", newline="")
     source = connect(client, corrected)
     other = tmp_path / "other.csv"
-    other.write_text("ZanzibarId,ZanzibarName\n1,Ann\n")
+    other.write_text("ZanzibarId,ZanzibarName\n1,Ann\n", encoding="utf-8", newline="")
     connect(client, other)
 
     save(client, source, has_header=False)
@@ -154,7 +168,7 @@ def test_another_sources_earlier_names_are_left_alone(
     other.write_bytes("id,name\n1,Zoé\n".encode())
     save(client, connect(client, other), encoding="Latin-1")
     path = tmp_path / "people.csv"
-    path.write_text("Ann,Paris\nBob,Lyon\nCid,Nice\nDee,Metz\n")
+    path.write_text("Ann,Paris\nBob,Lyon\nCid,Nice\nDee,Metz\n", encoding="utf-8", newline="")
 
     save(client, connect(client, path), has_header=False)
 

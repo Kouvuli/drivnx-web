@@ -38,7 +38,8 @@ def test_frozen_install_succeeds_and_leaves_the_lockfiles_unchanged(
         ["uv", "lock", "--check"], cwd=tmp_path, check=True, capture_output=True
     )
     subprocess.run(
-        ["pnpm", "install", "--frozen-lockfile"],
+        # On Windows pnpm is pnpm.cmd, which subprocess only finds by its full path.
+        [shutil.which("pnpm") or "pnpm", "install", "--frozen-lockfile"],
         cwd=tmp_path / "apps/web",
         check=True,
         capture_output=True,

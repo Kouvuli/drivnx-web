@@ -44,7 +44,7 @@ def summary(measured: MeasuredRows) -> tuple[int, bool, tuple[int, ...]]:
 def test_a_small_file_is_read_as_the_whole_file(tmp_path: Path) -> None:
     # CFX-APP-csv-profile/AC-17
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n2,Bob\n3,Cid\n")
+    path.write_text("id,name\n1,Ann\n2,Bob\n3,Cid\n", encoding="utf-8", newline="")
 
     columns, measured = measure(path, tmp_path)
 
@@ -54,7 +54,11 @@ def test_a_small_file_is_read_as_the_whole_file(tmp_path: Path) -> None:
 
 
 def numbered_csv(path: Path, rows: int) -> Path:
-    path.write_text("id\n" + "".join(f"{number}\n" for number in range(rows)))
+    path.write_text(
+        "id\n" + "".join(f"{number}\n" for number in range(rows)),
+        encoding="utf-8",
+        newline="",
+    )
     return path
 
 
@@ -105,7 +109,7 @@ def test_a_missing_value_after_the_first_100000_rows_is_not_counted(
     # CFX-APP-csv-profile/AC-07: the row read to tell whether there are more is never measured.
     path = tmp_path / "numbers.csv"
     rows = "".join(f"{number},x\n" for number in range(100_000))
-    path.write_text(f"id,name\n{rows}100000,\n100001,\n")
+    path.write_text(f"id,name\n{rows}100000,\n100001,\n", encoding="utf-8", newline="")
 
     _, measured = measure(path, tmp_path)
 
@@ -115,7 +119,11 @@ def test_a_missing_value_after_the_first_100000_rows_is_not_counted(
 def test_column_names_can_hold_anything(tmp_path: Path) -> None:
     # CFX-APP-csv-profile/AC-07: a name comes from the file, so it must never reach the SQL as SQL.
     path = tmp_path / "hostile.csv"
-    path.write_text('"a""b","x"") FROM first_rows; DROP TABLE first_rows; --"\n1,\n2,y\n')
+    path.write_text(
+        '"a""b","x"") FROM first_rows; DROP TABLE first_rows; --"\n1,\n2,y\n',
+        encoding="utf-8",
+        newline="",
+    )
 
     columns, measured = measure(path, tmp_path)
 
@@ -126,7 +134,7 @@ def test_column_names_can_hold_anything(tmp_path: Path) -> None:
 def test_duplicate_names_are_measured_as_separate_columns(tmp_path: Path) -> None:
     # CFX-APP-csv-profile/AC-07: the names DuckDB gives them are the ones the preview shows.
     path = tmp_path / "duplicates.csv"
-    path.write_text("a,a,A\n1,,3\n,,6\n")
+    path.write_text("a,a,A\n1,,3\n,,6\n", encoding="utf-8", newline="")
 
     columns, measured = measure(path, tmp_path)
 
@@ -137,7 +145,7 @@ def test_duplicate_names_are_measured_as_separate_columns(tmp_path: Path) -> Non
 def test_a_header_with_no_rows_has_nothing_missing(tmp_path: Path) -> None:
     # CFX-APP-csv-profile/AC-17
     path = tmp_path / "empty_table.csv"
-    path.write_text("id,name\n")
+    path.write_text("id,name\n", encoding="utf-8", newline="")
 
     _, measured = measure(path, tmp_path)
 
@@ -147,7 +155,7 @@ def test_a_header_with_no_rows_has_nothing_missing(tmp_path: Path) -> None:
 def test_lines_the_user_chose_to_skip_are_not_measured(tmp_path: Path) -> None:
     # CFX-APP-csv-profile/AC-07: read as the preview reads it, with the settings the user saved.
     path = tmp_path / "report.csv"
-    path.write_text("Quarterly,report\nid,name\n1,Ann\n2,\n")
+    path.write_text("Quarterly,report\nid,name\n1,Ann\n2,\n", encoding="utf-8", newline="")
 
     columns, measured = measure(path, tmp_path, chosen_skip=1)
 
@@ -161,7 +169,7 @@ def test_a_broken_row_after_the_first_rows_does_not_stop_the_read(
     # CFX-APP-csv-profile/AC-07: a row past the limit isn't read at all.
     path = tmp_path / "numbers.csv"
     rows = "".join(f"{number},x\n" for number in range(120_000))
-    path.write_text(f"id,name\n{rows}1,2,3,4,5,6\n")
+    path.write_text(f"id,name\n{rows}1,2,3,4,5,6\n", encoding="utf-8", newline="")
 
     columns, measured = measure(path, tmp_path)
 
@@ -175,7 +183,11 @@ def test_a_column_can_share_a_name_with_duckdbs_own_row_number(
 ) -> None:
     # CFX-APP-csv-profile/AC-07: exports from Oracle and SQLite often have this column.
     path = tmp_path / "export.csv"
-    path.write_text(f"{name},city\n50000,Paris\n150000,\n3,Lyon\n4,Nice\n")
+    path.write_text(
+        f"{name},city\n50000,Paris\n150000,\n3,Lyon\n4,Nice\n",
+        encoding="utf-8",
+        newline="",
+    )
 
     columns, measured = measure(path, tmp_path)
 
@@ -188,7 +200,7 @@ def test_a_broken_row_just_after_the_first_rows_fails_the_read(tmp_path: Path) -
     # safe, and leaving out a row that was reached wouldn't be. A DuckDB upgrade may change this.
     path = tmp_path / "numbers.csv"
     rows = "".join(f"{number},x\n" for number in range(100_049))
-    path.write_text(f"id,name\n{rows}1,2,3,4,5,6\n")
+    path.write_text(f"id,name\n{rows}1,2,3,4,5,6\n", encoding="utf-8", newline="")
 
     with pytest.raises(CsvError):
         measure(path, tmp_path)
@@ -199,7 +211,7 @@ def test_a_surplus_column_can_share_a_name_with_duckdbs_own_row_number(
 ) -> None:
     # CFX-APP-csv-profile/AC-14: only the first column is measured, and the name after it is harmless.
     path = tmp_path / "export.csv"
-    path.write_text("id,rowid\n1,x\n,y\n3,z\n4,w\n")
+    path.write_text("id,rowid\n1,x\n,y\n3,z\n4,w\n", encoding="utf-8", newline="")
     spill = tmp_path / "duckdb-tmp"
     spill.mkdir()
 

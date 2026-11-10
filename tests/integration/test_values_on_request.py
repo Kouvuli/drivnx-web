@@ -14,7 +14,7 @@ def values(
     tmp_path: Path, text: str, column_type: str, position: int = 0, every_row: bool = False
 ) -> ColumnValues:
     path = tmp_path / "values.csv"
-    path.write_text(text)
+    path.write_text(text, encoding="utf-8", newline="")
     spill = tmp_path / "duckdb-tmp"
     spill.mkdir(exist_ok=True)
     with duckdb_connection(spill) as connection:

@@ -1733,7 +1733,11 @@ def test_a_wide_file_saves_in_short_transactions_and_reviews_finish_during_the_r
     columns = 400
     path = tmp_path / "wide.csv"
     names = [f"n{number}" for number in range(columns)]
-    path.write_text(",".join(names) + "\n" + ",".join("abc" for _ in names) + "\n")
+    path.write_text(
+        ",".join(names) + "\n" + ",".join("abc" for _ in names) + "\n",
+        encoding="utf-8",
+        newline="",
+    )
     source = StoredSource(
         id="wide",
         path=path,

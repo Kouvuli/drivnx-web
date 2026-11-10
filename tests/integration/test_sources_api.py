@@ -441,7 +441,7 @@ def test_duckdb_spills_inside_the_workspace_and_leftovers_are_removed_at_startup
     temp = workspace.temp_directory
     assert temp == directory / "duckdb-tmp"
     assert stat.S_IMODE(temp.stat().st_mode) == 0o700
-    (temp / "leftover.tmp").write_text("spilled source data")
+    (temp / "leftover.tmp").write_text("spilled source data", encoding="utf-8", newline="")
     workspace.close()
 
     reopened = open_workspace(directory)

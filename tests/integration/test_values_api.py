@@ -42,7 +42,7 @@ def held_reads(monkeypatch: pytest.MonkeyPatch) -> tuple[threading.Event, thread
 
 
 def profiled(client: TestClient, path: Path, text: str, mode: str = "fast") -> dict:
-    path.write_text(text)
+    path.write_text(text, encoding="utf-8", newline="")
     return finished(client, start(client, connect(client, path), mode))
 
 
@@ -82,7 +82,7 @@ def test_values_come_from_the_part_of_the_file_the_run_read(
     # full one.
     text = "id\n" + "".join(f"{number}\n" for number in range(FIRST_ROWS + 5))
     path = tmp_path / "numbers.csv"
-    path.write_text(text)
+    path.write_text(text, encoding="utf-8", newline="")
     source = connect(client, path)
     fast = finished(client, start(client, source, "fast"))
     full = finished(client, start(client, source, "full"))
@@ -167,7 +167,7 @@ def test_a_file_whose_columns_changed_points_to_its_settings(
     # CFX-APP-csv-profile/AC-32: as a run's start is (AC-12).
     path = tmp_path / "people.csv"
     run = profiled(client, path, "id,city\n1,Oslo\n2,Bergen\n")
-    path.write_text("id,town\n1,Oslo\n2,Bergen\n")
+    path.write_text("id,town\n1,Oslo\n2,Bergen\n", encoding="utf-8", newline="")
 
     response = values_of(client, run, "city")
 
@@ -219,7 +219,7 @@ def test_values_of_a_run_that_didnt_complete_are_refused(
     client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     path = tmp_path / "people.csv"
-    path.write_text("id,city\n1,Oslo\n")
+    path.write_text("id,city\n1,Oslo\n", encoding="utf-8", newline="")
     _, release = held_reads(monkeypatch)
     running = start(client, connect(client, path))
 
@@ -240,7 +240,7 @@ def test_values_while_a_profile_is_running_are_refused(
 ) -> None:
     # Two DuckDB jobs could take twice the memory a profile is allowed.
     path = tmp_path / "people.csv"
-    path.write_text("id,city\n1,Oslo\n")
+    path.write_text("id,city\n1,Oslo\n", encoding="utf-8", newline="")
     source = connect(client, path)
     done = finished(client, start(client, source))
     _, release = held_reads(monkeypatch)
@@ -308,7 +308,7 @@ def test_values_of_a_run_made_with_earlier_settings_are_refused(
     client: TestClient, tmp_path: Path
 ) -> None:
     path = tmp_path / "people.csv"
-    path.write_text("id;name\n1;Ann\n")
+    path.write_text("id;name\n1;Ann\n", encoding="utf-8", newline="")
     source = connect(client, path)
     run = finished(client, start(client, source))
     corrected = client.put(

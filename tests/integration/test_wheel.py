@@ -37,7 +37,11 @@ def checkout(tmp_path_factory: pytest.TempPathFactory) -> Path:
     target = tmp_path_factory.mktemp("checkout")
     _clean_checkout(target)
     (target / BUILT_UI).mkdir(parents=True)
-    (target / BUILT_UI / "left-over.js").write_text("// from an older build\n")
+    (target / BUILT_UI / "left-over.js").write_text(
+        "// from an older build\n",
+        encoding="utf-8",
+        newline="",
+    )
     return target
 
 
@@ -87,10 +91,16 @@ def test_a_ui_build_that_ends_up_elsewhere_stops_the_wheel_build(
     # The T01 review: the wheel would otherwise ship an older build's UI, or none at all.
     (clean_checkout / BUILT_UI).mkdir(parents=True)
     (clean_checkout / BUILT_UI / "index.html").write_text(
-        "<p>from an older build</p>\n"
+        "<p>from an older build</p>\n",
+        encoding="utf-8",
+        newline="",
     )
     config = clean_checkout / "apps/web/vite.config.ts"
-    config.write_text(config.read_text().replace("../local-api/local_api/ui", "moved"))
+    config.write_text(
+        config.read_text(encoding="utf-8").replace("../local-api/local_api/ui", "moved"),
+        encoding="utf-8",
+        newline="",
+    )
 
     result = build_in_clean_checkout(tmp_path)
 
@@ -105,10 +115,16 @@ def test_a_ui_that_doesnt_compile_stops_the_wheel_build(
     # The T01 review: otherwise the wheel holds the UI left by an earlier build.
     (clean_checkout / BUILT_UI).mkdir(parents=True)
     (clean_checkout / BUILT_UI / "index.html").write_text(
-        "<p>from an older build</p>\n"
+        "<p>from an older build</p>\n",
+        encoding="utf-8",
+        newline="",
     )
     main = clean_checkout / "apps/web/src/main.tsx"
-    main.write_text(main.read_text() + '\nconst broken: number = "text";\n')
+    main.write_text(
+        main.read_text(encoding="utf-8") + '\nconst broken: number = "text";\n',
+        encoding="utf-8",
+        newline="",
+    )
 
     result = build_in_clean_checkout(tmp_path)
 
@@ -131,7 +147,7 @@ def _normal(name: str) -> str:
 
 def _locked_for_running() -> dict[str, str]:
     """What `uv.lock` says running DrivnX needs, walked from the project without the dev group."""
-    lock = tomllib.loads((REPO_ROOT / "uv.lock").read_text())
+    lock = tomllib.loads((REPO_ROOT / "uv.lock").read_text(encoding="utf-8"))
     packages = {package["name"]: package for package in lock["package"]}
     found: dict[str, str] = {}
     waiting = [dep["name"] for dep in packages["drivnx-data"]["dependencies"]]
@@ -199,9 +215,11 @@ def test_a_ui_lockfile_behind_its_package_stops_the_wheel_build(
     # Section 7 of the direction doc: the UI in a wheel is built from what's pinned.
     package = clean_checkout / "apps/web/package.json"
     package.write_text(
-        package.read_text().replace(
+        package.read_text(encoding="utf-8").replace(
             '"dependencies": {', '"dependencies": {\n    "left-pad": "1.3.0",'
-        )
+        ),
+        encoding="utf-8",
+        newline="",
     )
 
     result = build_in_clean_checkout(tmp_path)
@@ -217,7 +235,9 @@ def test_a_lockfile_behind_the_project_stops_the_wheel_build(
     # It would otherwise pin a set that doesn't match what the project asks for.
     project = clean_checkout / "pyproject.toml"
     project.write_text(
-        project.read_text().replace('"fastapi>=', '"idna>=1",\n    "fastapi>=')
+        project.read_text(encoding="utf-8").replace('"fastapi>=', '"idna>=1",\n    "fastapi>='),
+        encoding="utf-8",
+        newline="",
     )
 
     result = build_in_clean_checkout(tmp_path)

@@ -1,5 +1,6 @@
 """Workspace setup over the API, CFX-APP-first-slice AC-14, AC-15 and AC-16."""
 
+import socket
 import sqlite3
 import sys
 from pathlib import Path
@@ -137,14 +138,27 @@ def test_a_real_older_workspace_is_backed_up_and_upgraded(workspace_dir: Path) -
 
 @pytest.mark.parametrize("ai_mode", ["off", "external", "local"])
 def test_no_ai_mode_opens_a_network_connection(
-    client: TestClient, ai_mode: str
+    client: TestClient, ai_mode: str, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     # CFX-APP-first-slice/AC-16: Python reports every outgoing connection to an audit hook.
+    # On Windows, socket.socketpair() makes asyncio's wake-up pair by connecting the process to
+    # itself on loopback. That never leaves the process, so it isn't counted.
     connections: list[object] = []
     recording = [True]
+    pairing = [False]
+    real_socketpair = socket.socketpair
+
+    def socketpair(*args: object, **kwargs: object) -> tuple[socket.socket, socket.socket]:
+        pairing[0] = True
+        try:
+            return real_socketpair(*args, **kwargs)  # type: ignore[arg-type]
+        finally:
+            pairing[0] = False
+
+    monkeypatch.setattr(socket, "socketpair", socketpair)
 
     def record(event: str, args: tuple[object, ...]) -> None:
-        if recording[0] and event == "socket.connect":
+        if recording[0] and not pairing[0] and event == "socket.connect":
             connections.append(args[1])
 
     sys.addaudithook(record)
