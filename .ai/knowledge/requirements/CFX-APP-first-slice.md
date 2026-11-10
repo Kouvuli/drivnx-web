@@ -6,10 +6,10 @@ title: "First vertical slice: runtime to CSV preview, on the M1 domain model"
 summary: "Start DrivnX, set up a workspace in the browser, connect a CSV and see its metadata and a paginated preview, built on the full M1 domain model."
 owner: drivnx-web
 lifecycle: approved
-revision: 9
-approved_revision: 9
-approval_evidence: "user approved revision 9 in chat, 2026-11-04 (chose 'Event now, detection later' and 'Add a keep-as-is action' on building T08)"
-updated: "2026-11-04"
+revision: 10
+approved_revision: 10
+approval_evidence: "user approved the workspace restructure in chat, 2026-11-09 (revision 10, reference-only)"
+updated: "2026-11-09"
 related: []
 status: CONFIRMED
 ---
@@ -21,7 +21,7 @@ Nothing has been built yet. Before profiling depth is added, DrivnX has to prove
 runtime and browser model, the security baseline, and the domain model (Section 12 of the direction doc). This slice
 covers M1 and the start of M2.
 
-Source of truth: `../docs/DrivnX_Phase1_Development_Direction.md`, plus ADRs 0001, 0002 and 0003 in `docs/adr/`.
+Source of truth: `../drivnx-docs/docs/DrivnX_Phase1_Development_Direction.md`, plus ADRs 0001, 0002 and 0003 in `docs/adr/`.
 
 ## Scope
 In:
@@ -37,7 +37,7 @@ The review, dictionary and contract parts of the domain model have tests but no 
 ## Assumptions
 - ASSUMPTION: Linux, macOS and Windows are all targets, but only Linux can be run during this work. The other two stay NOT RUN until CI can run them.
 - ASSUMPTION: the UI is English only.
-- ASSUMPTION: the look is plain, with the orange accent from `../docs/design-mocks/` and no design polish. The orange accent must stay distinct from the Inferred trust colour (orange / amber, Section 3).
+- ASSUMPTION: the look is plain, with the orange accent from `../drivnx-docs/docs/design-mocks/` and no design polish. The orange accent must stay distinct from the Inferred trust colour (orange / amber, Section 3).
 - ASSUMPTION: a preview page holds 50 rows, the API allows at most 200, and a preview cell shows at most 1,000 characters and is visibly marked when cut short.
 - ASSUMPTION: detection covers comma, semicolon, tab and pipe delimiters; UTF-8 (with or without a BOM), UTF-16 with a BOM in either byte order, Latin-1 and Windows-1252 encodings; and files with or without a header row. Files without a header get generated column names, shown as generated.
 - ASSUMPTION: Windows-1252 files, big-endian UTF-16 files and little-endian UTF-16 files with characters above U+FFFF are limited to 100 MB, because DuckDB can't read them directly and they have to be decoded in memory (measured at about 530 MB of RAM for a 94 MB file).
@@ -182,3 +182,4 @@ None blocks approval.
 - Revision 7: Fixing T06 found that reading mixed line endings can drop an extra field in a later row. AC-27 records this limit. Approved by the user in chat, 2026-11-03.
 - Revision 8: Reviewing T07 raised three questions about the domain model. A Finding records its author and event as Inferred, a DictionaryEntry holds assumptions, and a field has at most one Confirmed entry (new AC-55). AC-35 now says everything saved reads back. Approved by the user in chat, 2026-11-04.
 - Revision 9: Building T08 settled how "needs re-review" works (AC-39). The system records it as a ProvenanceEvent, a new Keep as is action lets a user clear it without changing the item, and what counts as a contradiction waits for M3's profiling work. Approved by the user in chat, 2026-11-04.
+- Revision 10: Reference-only change: the workspace is now a plain `DrivnX/` folder with drivnx-docs next to this repo, so `../docs/` becomes `../drivnx-docs/docs/`. No change to behaviour.

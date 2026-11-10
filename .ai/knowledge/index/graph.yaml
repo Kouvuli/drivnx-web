@@ -1,10 +1,10 @@
 schema: ai-skill-os/knowledge-graph/v1
 generated_by: ai-skills knowledge discover
-updated_at: '2026-11-08T16:25:24+00:00'
+updated_at: '2026-11-10T13:52:46+00:00'
 note: Index for retrieval only. Source files are the truth; follow the evidence.
 sources:
-  .ai/knowledge/requirements/CFX-APP-csv-profile.md: 3ed3f976e9a1b5a34eb96c5016d7d30c5d41ff6f2aabf340ba26c7c196d0fb3f
-  .ai/knowledge/requirements/CFX-APP-first-slice.md: fdcbb7daff3d3c33c9ffb475a11f2ac0c597c9f5e8fdd3f1501bed4aa519b438
+  .ai/knowledge/requirements/CFX-APP-csv-profile.md: 4306b95968b0b88879aafd7c2204705ca1c9979cc74b596759a5185a078b08cc
+  .ai/knowledge/requirements/CFX-APP-first-slice.md: 57191fba4728eb3af974d0ea973ae80880e2f76f6eefc8e4a9371e8ebe6692ef
   .ai/knowledge/work/DRIVN-11.md: f44a791c6d85100d42137c62ec7cc0dc7a92fac7b7fa57ca6e91e8d68c8e9341
   .ai/knowledge/work/DRIVN-12.md: 1b8b30c5425c8e76cf0e6aedfc47fabf3973bab253649ac0a1fdfa87abf9e811
   .ai/knowledge/work/DRIVN-13.md: 804ef8532f1f6937f42901d039bbe62f1ae54aafe76d9471a6a7a707116c40e9

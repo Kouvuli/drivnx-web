@@ -5,13 +5,14 @@ the [README](README.md); this guide is about the workflow around them.
 
 ## 1. Set up
 
-This repo lives inside the DrivnX workspace, because its docs link to `../docs/` (the Phase 1 direction) and its skill
-setup to `../ai-skills/`. Clone the workspace first, then this repo into it:
+This repo sits in a `DrivnX/` workspace folder next to drivnx-docs, because its docs link to `../drivnx-docs/docs/` (the
+Phase 1 direction) and its skill setup to `../drivnx-docs/ai-skills/`. The `drivnx` command from
+[drivnx-cli](https://github.com/trisonlab/drivnx-cli) sets it all up: it clones this repo next to drivnx-docs, installs
+the dependencies below and connects Claude Code to Plane and Pumble (its README is the team guide):
 
 ```bash
-git clone git@github.com:trisonlab/drivnx-docs.git DrivnX
-cd DrivnX
-git clone git@github.com:trisonlab/drivnx-web.git        # stays its own repo; drivnx-docs ignores it
+curl -fsSL https://raw.githubusercontent.com/trisonlab/drivnx-cli/main/get.sh | sh                # macOS / Linux
+irm https://raw.githubusercontent.com/trisonlab/drivnx-cli/main/get.ps1 | iex                     # Windows PowerShell
 ```
 
 You need Python 3.12 with [uv](https://docs.astral.sh/uv/), Node 22 with pnpm (the version is pinned in
@@ -22,7 +23,7 @@ You need Python 3.12 with [uv](https://docs.astral.sh/uv/), Node 22 with pnpm (t
 
 | What | Where |
 |---|---|
-| What DrivnX is and why | `../docs/DrivnX_Phase1_Development_Direction.md`: approved and canonical; it wins over everything below |
+| What DrivnX is and why | `../drivnx-docs/docs/DrivnX_Phase1_Development_Direction.md`: approved and canonical; it wins over everything below |
 | Features (stories, acceptance criteria, revision, approval) | `.ai/knowledge/requirements/CFX-APP-*.md` |
 | Tickets (criteria, `blocked_by`, `state: ready / blocked / done`) | `.ai/knowledge/work/DRIVN-*.md`, mirrored in [Plane](https://app.plane.so/drivnx/) project DRIVN |
 | Decisions | `docs/adr/` (index in `.ai/knowledge/decisions/adr-index.md`) |
@@ -172,5 +173,5 @@ Without the CLI, the skills read the ticket and requirement files directly.
   overwrite local edits.
 - Don't edit inside the `ai-skills:begin … ai-skills:end` block of `CLAUDE.md` / `AGENTS.md`, for the same reason.
   Put notes for this repo outside the block.
-- To add a skill to every DrivnX repo, add it to `../ai-skills/baseline.txt` and run `../ai-skills/drivnx-skills.sh
+- To add a skill to every DrivnX repo, add it to `../drivnx-docs/ai-skills/baseline.txt` and run `../drivnx-docs/ai-skills/drivnx-skills.sh
   sync`. To add one to this repo only, run `ai-skills add <skill>`. Both need the CLI.
