@@ -45,7 +45,7 @@ def test_patterns_that_differ_only_in_spaces_look_different(
     # CFX-APP-csv-profile/AC-14: found reviewing T05. They're separate patterns, and a browser
     # collapses spaces unless told not to, which would show the same pattern twice.
     path = tmp_path / "spaces.csv"
-    path.write_text("id,value\n1, 8\n2,9 \n3,x 7\n")
+    path.write_text("id,value\n1, 8\n2,9 \n3,x 7\n", encoding="utf-8", newline="")
 
     panel = run_a_fast_profile(app, path)
 
@@ -63,7 +63,9 @@ def test_a_file_over_100000_rows_is_labelled_as_its_first_rows(
     # CFX-APP-csv-profile/AC-07 and CFX-APP-csv-profile/AC-16
     path = tmp_path / "numbers.csv"
     path.write_text(
-        "id,name\n" + "".join(f"{number},name{number}\n" for number in range(150_000))
+        "id,name\n" + "".join(f"{number},name{number}\n" for number in range(150_000)),
+        encoding="utf-8",
+        newline="",
     )
 
     panel = run_a_fast_profile(app, path)

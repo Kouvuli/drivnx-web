@@ -74,7 +74,7 @@ def test_a_fast_profile_runs_in_the_background_and_shows_its_results(
 ) -> None:
     # CFX-APP-csv-profile/AC-07
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n2,\n3,Cid\n")
+    path.write_text("id,name\n1,Ann\n2,\n3,Cid\n", encoding="utf-8", newline="")
     source = connect(client, path)
 
     run = finished(client, start(client, source))
@@ -93,9 +93,9 @@ def test_a_second_run_is_refused_while_one_is_in_progress(
 ) -> None:
     # CFX-APP-csv-profile/AC-09
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     other = tmp_path / "other.csv"
-    other.write_text("a,b\n1,2\n")
+    other.write_text("a,b\n1,2\n", encoding="utf-8", newline="")
     source = connect(client, path)
     second_source = connect(client, other)
     run = start(client, source)
@@ -116,7 +116,7 @@ def test_runs_are_listed_newest_first_and_show_one_in_progress(
 ) -> None:
     # CFX-APP-csv-profile/AC-09: the header and the Profile tab read this.
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     source = connect(client, path)
     held_run.set()
     first = finished(client, start(client, source))
@@ -139,7 +139,7 @@ def test_a_run_made_before_a_correction_no_longer_uses_the_current_settings(
 ) -> None:
     # CFX-APP-csv-profile/AC-36: the Profile tab labels these, and shows them only when opened.
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n2,Bob\n3,Cid\n4,Dee\n")
+    path.write_text("id,name\n1,Ann\n2,Bob\n3,Cid\n4,Dee\n", encoding="utf-8", newline="")
     source = connect(client, path)
     run = finished(client, start(client, source))
     assert run["current_settings"] is True
@@ -174,7 +174,7 @@ def test_a_correction_during_a_run_on_the_same_file_is_refused(
 ) -> None:
     # CFX-APP-csv-profile/AC-06
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n2,Bob\n")
+    path.write_text("id,name\n1,Ann\n2,Bob\n", encoding="utf-8", newline="")
     source = connect(client, path)
     run = start(client, source)
 
@@ -198,7 +198,7 @@ def test_a_start_that_meets_a_correction_is_refused(
     # CFX-APP-csv-profile/AC-06, the other way round: the correction lands just after the start has
     # read the dataset, so the run would record a dataset that's no longer current.
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     source = connect(client, path)
     read = profile_runs_api.read_dataset
 
@@ -229,7 +229,7 @@ def test_a_correction_while_a_start_reads_the_file_is_refused(
     # CFX-APP-csv-profile/AC-06: found reviewing T07. A correction saved while the start reads the
     # file's columns gave a completed run, shown as current, that counted the header as a row.
     path = tmp_path / "numbers.csv"
-    path.write_text("1,2\n3,4\n")
+    path.write_text("1,2\n3,4\n", encoding="utf-8", newline="")
     source = connect(client, path)
     assert source["has_header"] is False
     sniff = profile_runs_api.sniffed_columns
@@ -260,9 +260,9 @@ def test_a_correction_to_another_file_during_a_run_is_saved(
 ) -> None:
     # CFX-APP-csv-profile/AC-06 refuses only what the run reads.
     running = tmp_path / "people.csv"
-    running.write_text("id,name\n1,Ann\n")
+    running.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     other = tmp_path / "other.csv"
-    other.write_text("a,b\n1,2\n")
+    other.write_text("a,b\n1,2\n", encoding="utf-8", newline="")
     run = start(client, connect(client, running))
     source = connect(client, other)
 
@@ -277,7 +277,11 @@ def test_a_correction_to_another_file_during_a_run_is_saved(
 
 
 def numbered_csv(path: Path, rows: int) -> Path:
-    path.write_text("id\n" + "".join(f"{number}\n" for number in range(rows)))
+    path.write_text(
+        "id\n" + "".join(f"{number}\n" for number in range(rows)),
+        encoding="utf-8",
+        newline="",
+    )
     return path
 
 
@@ -317,7 +321,7 @@ def test_results_stay_hidden_until_the_run_has_completed(
 
     monkeypatch.setattr(profile_jobs, "finish_profile_run", held_finish)
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     run = start(client, connect(client, path))
     assert saved.wait(WAIT_FOR_A_RUN_SECONDS)
 
@@ -334,7 +338,7 @@ def test_two_runs_started_at_once_make_one_run(
 ) -> None:
     # CFX-APP-csv-profile/AC-09
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     source = connect(client, path)
     both_ready = threading.Barrier(2)
 
@@ -358,9 +362,9 @@ def test_a_file_whose_columns_changed_fails_rather_than_saving_wrong_evidence(
 ) -> None:
     # T07 refuses this at the start. A run must still never save a metric against the wrong field.
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     run = start(client, connect(client, path))
-    path.write_text("name,id\nAnn,1\n")
+    path.write_text("name,id\nAnn,1\n", encoding="utf-8", newline="")
     held_run.set()
 
     ended = finished(client, run)
@@ -392,11 +396,11 @@ def test_a_file_whose_columns_changed_is_refused_before_a_run_starts(
 ) -> None:
     # CFX-APP-csv-profile/AC-12. A new column is told apart from a wider row, which reads the same.
     path = tmp_path / "people.csv"
-    path.write_text(before)
+    path.write_text(before, encoding="utf-8", newline="")
     source = connect(client, path)
     if saved_settings:
         source = corrected(client, source)
-    path.write_text(after)
+    path.write_text(after, encoding="utf-8", newline="")
 
     response = client.post(
         "/api/profile-runs", json={"source_id": source["id"], "mode": "fast"}
@@ -412,9 +416,9 @@ def test_saving_the_settings_after_a_refusal_reads_the_columns_again(
 ) -> None:
     # CFX-APP-csv-profile/AC-12, the second half.
     path = tmp_path / "people.csv"
-    path.write_text("a,b\n1,2\n")
+    path.write_text("a,b\n1,2\n", encoding="utf-8", newline="")
     source = connect(client, path)
-    path.write_text("a,b,c\n1,2,3\n")
+    path.write_text("a,b,c\n1,2,3\n", encoding="utf-8", newline="")
     refused = client.post("/api/profile-runs", json={"source_id": source["id"], "mode": "fast"})
     assert refused.status_code == 409
 
@@ -440,7 +444,7 @@ def test_a_failed_run_keeps_the_errors_text_to_itself(
 
     monkeypatch.setattr(profile_jobs, "measure_rows", failing_measure)
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
 
     ended = finished(client, start(client, connect(client, path)))
 
@@ -465,7 +469,7 @@ def test_a_run_that_meets_a_busy_workspace_says_so(
 
     monkeypatch.setattr(profile_jobs, "add_observations", busy_save)
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
 
     run = finished(client, start(client, connect(client, path)))
 
@@ -478,7 +482,11 @@ def test_a_run_that_runs_out_of_memory_says_so(
 ) -> None:
     # CFX-APP-csv-profile/AC-11: nothing is wrong with the file, so the message mustn't blame a row.
     path = tmp_path / "wide_cells.csv"
-    path.write_text("id,name\n" + "".join(f"{row},{'x' * 2000}\n" for row in range(3000)))
+    path.write_text(
+        "id,name\n" + "".join(f"{row},{'x' * 2000}\n" for row in range(3000)),
+        encoding="utf-8",
+        newline="",
+    )
     source = connect(client, path)
     monkeypatch.setattr(profile_jobs, "PROFILE_MEMORY_LIMIT", "1MB")
 
@@ -495,7 +503,7 @@ def test_a_row_that_cant_be_read_fails_the_run_and_says_so(
     # rather than being cut.
     path = tmp_path / "wide.csv"
     rows = "".join(f"{number},Ann\n" for number in range(30_000))
-    path.write_text(f"id,name\n{rows}1,Ann,extra\n")
+    path.write_text(f"id,name\n{rows}1,Ann,extra\n", encoding="utf-8", newline="")
 
     run = finished(client, start(client, connect(client, path)))
 
@@ -514,7 +522,7 @@ def test_a_quote_never_closed_late_in_a_file_fails_the_run(
     path = tmp_path / "late_quote.csv"
     before = "".join(f"{number},v{number}\n" for number in range(3000))
     after = "".join(f"{number},w{number}\n" for number in range(rows_after))
-    path.write_text(f'id,name\n{before}2,"oops\n{after}')
+    path.write_text(f'id,name\n{before}2,"oops\n{after}', encoding="utf-8", newline="")
 
     run = finished(client, start(client, connect(client, path)))
 
@@ -530,7 +538,11 @@ def test_lines_left_out_above_the_table_are_saved_with_the_run(
     # As in the preview (first slice, AC-27): DuckDB takes the lines above a wider last row as lines
     # to skip, so a run must say how many it left out, or 1 row would look like the whole file.
     path = tmp_path / "last_row_wider.csv"
-    path.write_text("".join(f"{number},x\n" for number in range(40)) + "1,2,3\n")
+    path.write_text(
+        "".join(f"{number},x\n" for number in range(40)) + "1,2,3\n",
+        encoding="utf-8",
+        newline="",
+    )
 
     run = finished(client, start(client, connect(client, path)))
 
@@ -543,7 +555,7 @@ def test_a_file_with_no_lines_above_the_table_saves_none_left_out(
     client: TestClient, tmp_path: Path
 ) -> None:
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
 
     run = finished(client, start(client, connect(client, path)))
 
@@ -579,7 +591,7 @@ def test_a_mistake_in_a_job_ends_the_run_and_stays_visible(
 
     monkeypatch.setattr(profile_jobs, "measure_rows", buggy_measure)
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
 
     ended = finished(client, start(client, connect(client, path)))
 
@@ -599,7 +611,7 @@ def test_a_failed_run_does_not_stop_the_next_one(
 
     monkeypatch.setattr(profile_jobs, "measure_rows", failing_measure)
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     source = connect(client, path)
     assert finished(client, start(client, source))["status"] == "failed"
     monkeypatch.setattr(profile_jobs, "measure_rows", measure)
@@ -614,7 +626,7 @@ def test_a_file_too_wide_for_one_transaction_saves_every_metric(
     path = tmp_path / "wide.csv"
     names = ",".join(f"c{number}" for number in range(200))
     values = ",".join("1" for _ in range(200))
-    path.write_text(f"{names}\n{values}\n")
+    path.write_text(f"{names}\n{values}\n", encoding="utf-8", newline="")
 
     run = finished(client, start(client, connect(client, path)))
 
@@ -636,7 +648,9 @@ def test_a_job_spills_only_inside_the_workspace_and_stays_within_its_memory_limi
     path = tmp_path / "big_cells.csv"
     cell = "".join(chr(0x41 + number % 26) for number in range(1_000))
     path.write_text(
-        "id,text\n" + "".join(f"{row},{row}{cell}\n" for row in range(100_000))
+        "id,text\n" + "".join(f"{row},{row}{cell}\n" for row in range(100_000)),
+        encoding="utf-8",
+        newline="",
     )
     source = connect(client, path)
     seen: dict[str, object] = {}
@@ -665,7 +679,7 @@ def test_starting_a_run_needs_a_source_and_a_known_mode(
     client: TestClient, tmp_path: Path
 ) -> None:
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     source = connect(client, path)
 
     no_source = client.post(
@@ -686,7 +700,7 @@ def test_a_file_that_has_gone_is_refused_before_a_run_starts(
 ) -> None:
     # CFX-APP-csv-profile/AC-11
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     source = connect(client, path)
     path.unlink()
 
@@ -727,7 +741,7 @@ def test_a_file_removed_during_a_run_fails_and_says_so(
 ) -> None:
     # CFX-APP-csv-profile/AC-11
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     source = connect(client, path)
     after_reading(monkeypatch, path.unlink)
 
@@ -743,7 +757,7 @@ def test_a_file_changed_during_a_run_fails_and_says_so(
 ) -> None:
     # CFX-APP-csv-profile/AC-11: what was measured may not be the file any more.
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     source = connect(client, path)
 
     def add_a_row() -> None:
@@ -765,7 +779,7 @@ def test_a_file_that_becomes_unreadable_during_a_run_fails_and_says_so(
 ) -> None:
     # CFX-APP-csv-profile/AC-11
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     source = connect(client, path)
     before_reading(monkeypatch, lambda: path.chmod(0))
 
@@ -784,7 +798,7 @@ def test_a_file_replaced_by_a_pipe_during_a_run_still_ends_the_run(
 ) -> None:
     # CFX-APP-csv-profile/AC-11: opening a pipe waits for a writer, which never comes.
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     source = connect(client, path)
 
     def replace_with_a_pipe() -> None:
@@ -805,7 +819,7 @@ def test_a_file_that_cant_be_looked_at_during_a_run_still_says_why(
 ) -> None:
     # CFX-APP-csv-profile/AC-11: a link to itself is neither missing nor forbidden.
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     source = connect(client, path)
 
     def replace_with_a_loop() -> None:
@@ -827,7 +841,7 @@ def test_a_file_that_cant_be_read_is_refused_before_a_run_starts(
 ) -> None:
     # CFX-APP-csv-profile/AC-11
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     source = connect(client, path)
     path.chmod(0)
 
@@ -886,7 +900,7 @@ def test_a_busy_workspace_says_so(
 ) -> None:
     # T03's review: this was a bare 500, with "DrivnX is busy" never reaching the user.
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     source = connect(client, path)
     writer = sqlite3.connect(workspace_dir / "workspace.db", isolation_level=None)
     writer.execute("BEGIN IMMEDIATE")
@@ -907,7 +921,7 @@ def test_a_busy_workspace_says_so_when_saving_settings_too(
 ) -> None:
     # T03's note: saving settings answered a bare 500 when another program held the write lock.
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     source = connect(client, path)
     writer = sqlite3.connect(workspace_dir / "workspace.db", isolation_level=None)
     writer.execute("BEGIN IMMEDIATE")
@@ -944,7 +958,11 @@ def test_a_wider_row_in_a_file_with_no_header_is_measured_by_position(
     # is saved and `column03` is read. Those names say nothing, and only the width can be checked.
     path = tmp_path / "no_header.csv"
     row = "".join(",".join(str(row * 10 + col) for col in range(9)) + "\n" for row in range(1, 6))
-    path.write_text(f"10,11,12,,14,15,16,17,18\n{row}1,2,3,4,5,6,7,8,9,10,11\n{row}")
+    path.write_text(
+        f"10,11,12,,14,15,16,17,18\n{row}1,2,3,4,5,6,7,8,9,10,11\n{row}",
+        encoding="utf-8",
+        newline="",
+    )
     source = connect(client, path)
     assert source["has_header"] is False
     assert source["columns"][3]["name"] == "column3"
@@ -967,11 +985,11 @@ def test_a_file_with_no_header_that_lost_columns_fails(
 ) -> None:
     # CFX-APP-csv-profile/AC-07: too few to give every saved field its metric.
     path = tmp_path / "no_header.csv"
-    path.write_text("1,2,3\n4,5,6\n7,8,9\n")
+    path.write_text("1,2,3\n4,5,6\n7,8,9\n", encoding="utf-8", newline="")
     source = connect(client, path)
     assert source["has_header"] is False
     run = start(client, source)
-    path.write_text("1,2\n4,5\n7,8\n")
+    path.write_text("1,2\n4,5\n7,8\n", encoding="utf-8", newline="")
     held_run.set()
 
     assert finished(client, run)["status"] == "failed"
@@ -985,7 +1003,11 @@ def test_a_run_records_what_it_read_and_how(
 ) -> None:
     # The spec's low-level design. A run can't be corrected later, and T11 compares against this.
     path = tmp_path / "report.csv"
-    path.write_text("Quarterly;report\nid;name\n1;Ann\n2;Bob\n3;Cid\n4;Dee\n")
+    path.write_text(
+        "Quarterly;report\nid;name\n1;Ann\n2;Bob\n3;Cid\n4;Dee\n",
+        encoding="utf-8",
+        newline="",
+    )
     source = connect(client, path)
     corrected = client.put(
         f"/api/sources/{source['id']}/settings",
@@ -1017,7 +1039,7 @@ def test_each_column_gets_its_lengths_distinct_count_and_percentages(
     # CFX-APP-csv-profile/AC-14. Worked by hand: 4 rows, and `city` has 1 missing and 3 values of
     # which 2 differ, with lengths 3, 3 and 5.
     path = tmp_path / "people.csv"
-    path.write_text("id,city\n1,Rio\n2,Rio\n3,\n4,Paris\n")
+    path.write_text("id,city\n1,Rio\n2,Rio\n3,\n4,Paris\n", encoding="utf-8", newline="")
 
     run = finished(client, start(client, connect(client, path)))
 
@@ -1036,7 +1058,7 @@ def test_a_header_with_no_rows_saves_nothing_it_would_have_to_divide_by(
 ) -> None:
     # CFX-APP-csv-profile/AC-14
     path = tmp_path / "header_only.csv"
-    path.write_text("id,name\n")
+    path.write_text("id,name\n", encoding="utf-8", newline="")
 
     run = finished(client, start(client, connect(client, path)))
 
@@ -1055,7 +1077,7 @@ def test_a_completely_empty_column_has_no_lengths_or_distinct_percentage(
 ) -> None:
     # CFX-APP-csv-profile/AC-14: there are rows, so its missing percentage still means something.
     path = tmp_path / "empty_column.csv"
-    path.write_text("id,blank\n1,\n2,   \n3,\n4,\n")
+    path.write_text("id,blank\n1,\n2,   \n3,\n4,\n", encoding="utf-8", newline="")
 
     run = finished(client, start(client, connect(client, path)))
 
@@ -1076,7 +1098,7 @@ def test_columns_with_the_same_name_are_measured_separately(
 ) -> None:
     # CFX-APP-csv-profile/AC-14
     path = tmp_path / "duplicates.csv"
-    path.write_text("a,a\nxx,yyyy\nzz,yyyy\nww,yyyy\n")
+    path.write_text("a,a\nxx,yyyy\nzz,yyyy\nww,yyyy\n", encoding="utf-8", newline="")
 
     source = connect(client, path)
     run = finished(client, start(client, source))
@@ -1136,7 +1158,11 @@ def test_every_value_in_a_date_format_other_than_iso_fits(
 ) -> None:
     # CFX-APP-csv-profile/AC-14: a plain cast reports each of these as not fitting.
     path = tmp_path / "dates.csv"
-    path.write_text("joined,x\n03/25/2024,1\n03/26/2024,2\n12/27/2024,3\n")
+    path.write_text(
+        "joined,x\n03/25/2024,1\n03/26/2024,2\n12/27/2024,3\n",
+        encoding="utf-8",
+        newline="",
+    )
     source = connect(client, path)
     assert source["columns"][0]["physical_type"] == "DATE"
 
@@ -1235,7 +1261,7 @@ def test_a_column_in_another_format_of_its_type_fits(
     # CFX-APP-csv-profile/AC-14: found reviewing T05. DuckDB detects one format per type, and still
     # types a second column that its plain cast can read.
     path = tmp_path / "formats.csv"
-    path.write_text(contents)
+    path.write_text(contents, encoding="utf-8", newline="")
     source = connect(client, path)
     assert source["columns"][2]["physical_type"] == physical_type
 
@@ -1259,7 +1285,11 @@ def test_a_large_integer_fits_an_integer_column(
     # CFX-APP-csv-profile/AC-14: found reviewing T05. Converted two ways, the same whole number can
     # round to two different doubles.
     path = tmp_path / "integers.csv"
-    path.write_text("id,big\n" + "".join(f"{row},{value}\n" for row, value in enumerate(values)))
+    path.write_text(
+        "id,big\n" + "".join(f"{row},{value}\n" for row, value in enumerate(values)),
+        encoding="utf-8",
+        newline="",
+    )
     source = connect(client, path)
     assert source["columns"][1]["physical_type"] == physical_type
 
@@ -1274,7 +1304,7 @@ def test_skipping_every_line_leaves_nothing_to_measure_and_the_run_still_finishe
     # CFX-APP-csv-profile/AC-14: found verifying T05. DuckDB can't sniff a format from no rows, and
     # with nothing to fit it doesn't need one.
     path = tmp_path / "header_only.csv"
-    path.write_text("id,name\n")
+    path.write_text("id,name\n", encoding="utf-8", newline="")
     source = corrected(client, connect(client, path), skip_lines=1)
 
     run = finished(client, start(client, source))
@@ -1373,7 +1403,7 @@ def test_a_file_with_no_surplus_columns_says_nothing_about_them(
 ) -> None:
     # CFX-APP-csv-profile/AC-14
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n2,Bob\n")
+    path.write_text("id,name\n1,Ann\n2,Bob\n", encoding="utf-8", newline="")
 
     run = finished(client, start(client, connect(client, path)))
 

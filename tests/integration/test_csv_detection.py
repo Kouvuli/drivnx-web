@@ -20,7 +20,7 @@ from connectors.csv_files import (
     scan_csv,
 )
 
-from ..conftest import posix_only
+from ..conftest import posix_only, windows_forbids
 
 CSV_DIR = Path(__file__).parents[2] / "testdata" / "csv"
 
@@ -143,10 +143,10 @@ def test_every_encoding_gives_the_same_columns(tmp_path: Path, file: str) -> Non
     [
         "with space.csv",
         "it's quoted.csv",
-        'double"quote.csv',
+        pytest.param('double"quote.csv', marks=windows_forbids),
         "report[1].csv",
-        "star*name.csv",
-        "what?.csv",
+        pytest.param("star*name.csv", marks=windows_forbids),
+        pytest.param("what?.csv", marks=windows_forbids),
         "café données.csv",
         "semi;colon.csv",
         "%20encoded.csv",
@@ -173,7 +173,14 @@ def test_awkward_file_names_open_the_file_they_name(
     assert scan.columns[0].name in ("id", "item")
 
 
-@pytest.mark.parametrize("directory", ["dir[1]", "dir*", "what?"])
+@pytest.mark.parametrize(
+    "directory",
+    [
+        "dir[1]",
+        pytest.param("dir*", marks=windows_forbids),
+        pytest.param("what?", marks=windows_forbids),
+    ],
+)
 def test_awkward_directory_names_open_the_file_they_name(
     tmp_path: Path, directory: str
 ) -> None:
@@ -418,7 +425,7 @@ def test_a_hash_in_the_header_and_first_row_stays_in_the_file_it_describes(
 ) -> None:
     # CFX-APP-first-slice/AC-22: DuckDB can decide # marks comments and lose the header to it.
     path = tmp_path / "hash.csv"
-    path.write_text("#id,name\n#1,a\n2,b\n3,c\n4,d\n")
+    path.write_text("#id,name\n#1,a\n2,b\n3,c\n4,d\n", encoding="utf-8", newline="")
 
     scan = scan_csv(path, tmp_path)
 
@@ -504,7 +511,7 @@ def test_long_cells_are_cut_before_they_reach_python(tmp_path: Path) -> None:
     # Found reviewing T06: 201 rows of 1.9 MB cells peaked at 1.8 GB. One character over the limit
     # is kept, so the API can tell a cell that was cut from one that fits exactly.
     path = tmp_path / "long.csv"
-    path.write_text(f"id,note\n1,{'x' * 5000}\n2,{'y' * 1000}\n")
+    path.write_text(f"id,note\n1,{'x' * 5000}\n2,{'y' * 1000}\n", encoding="utf-8", newline="")
 
     page = read_page(path, "UTF-8", ",", True, 0, 2, tmp_path)
 
@@ -516,7 +523,11 @@ def test_values_starting_with_a_hash_count_when_detecting_a_columns_type(
 ) -> None:
     # CFX-APP-first-slice/AC-24: read as comments, they would leave this column looking like numbers.
     path = tmp_path / "hash.csv"
-    path.write_text("issue,title\n#101,a\n#102,b\n103,c\n104,d\n105,e\n")
+    path.write_text(
+        "issue,title\n#101,a\n#102,b\n103,c\n104,d\n105,e\n",
+        encoding="utf-8",
+        newline="",
+    )
 
     scan = scan_csv(path, tmp_path)
 

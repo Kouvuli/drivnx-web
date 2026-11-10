@@ -62,7 +62,7 @@ class RunningApp(TestClient):
 def restart(tmp_path: Path, workspace_dir: Path) -> RunningApp:
     ui_dir = tmp_path / "ui"
     ui_dir.mkdir(exist_ok=True)
-    (ui_dir / "index.html").write_text("<html></html>")
+    (ui_dir / "index.html").write_text("<html></html>", encoding="utf-8", newline="")
     workspace = open_workspace(workspace_dir)
     session = LaunchSession(PORT)
     app = RunningApp(
@@ -301,7 +301,7 @@ def test_a_row_wider_than_the_table_is_an_error_and_never_cut(
     # CFX-APP-csv-profile/AC-03: dropping the extra field would hide data without saying so.
     path = tmp_path / "wide.csv"
     rows = "".join(f"{number},Ann\n" for number in range(30_000))
-    path.write_text(f"title\nid,name\n{rows}1,Ann,extra\n")
+    path.write_text(f"title\nid,name\n{rows}1,Ann,extra\n", encoding="utf-8", newline="")
     source = connect(client, path)
 
     response = save(client, source, has_header=False, skip_lines=0)
@@ -333,7 +333,7 @@ def test_an_encoding_over_the_limit_is_refused_and_the_old_one_stays(
 ) -> None:
     # CFX-APP-csv-profile/AC-03
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n2,Bob\n")
+    path.write_text("id,name\n1,Ann\n2,Bob\n", encoding="utf-8", newline="")
     source = connect(client, path)
     monkeypatch.setattr(csv_files, "DECODED_IN_MEMORY_LIMIT_BYTES", 4)
 
@@ -349,7 +349,7 @@ def test_a_file_that_has_gone_keeps_the_old_settings(
 ) -> None:
     # CFX-APP-csv-profile/AC-03
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     source = connect(client, path)
     path.unlink()
 

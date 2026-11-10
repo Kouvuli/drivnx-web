@@ -7,10 +7,11 @@ from pathlib import Path
 
 import fsspec
 import pytest
+from artifacts.workspace import LOCK_NAME
 from fastapi.testclient import TestClient
 from local_api import sources_api
 
-from ..conftest import posix_only
+from ..conftest import posix_only, windows_forbids
 
 CSV_DIR = Path(__file__).parents[2] / "testdata" / "csv"
 
@@ -23,7 +24,7 @@ def connect(client: TestClient, path: Path) -> str:
 
 def numbered_csv(path: Path, rows: int) -> Path:
     lines = [f"{number},name{number}\n" for number in range(1, rows + 1)]
-    path.write_text("id,name\n" + "".join(lines))
+    path.write_text("id,name\n" + "".join(lines), encoding="utf-8", newline="")
     return path
 
 
@@ -163,13 +164,16 @@ def test_the_preview_finds_the_same_columns_and_rows_the_file_holds(
     assert values(page)[0] == row
 
 
-@pytest.mark.parametrize("name", ["report[1].csv", "star*name.csv", "plain.csv.gz"])
+@pytest.mark.parametrize(
+    "name",
+    ["report[1].csv", pytest.param("star*name.csv", marks=windows_forbids), "plain.csv.gz"],
+)
 def test_awkward_file_names_preview_the_file_they_name(
     client: TestClient, tmp_path: Path, name: str
 ) -> None:
     # Found in T05: * ? [ are wildcards to DuckDB, and it picks compression from the name.
     shutil.copy(CSV_DIR / "comma_utf8.csv", tmp_path / name)
-    (tmp_path / "report1.csv").write_text("wrong,file\n1,2\n")
+    (tmp_path / "report1.csv").write_text("wrong,file\n1,2\n", encoding="utf-8", newline="")
 
     page = client.get(f"/api/sources/{connect(client, tmp_path / name)}/rows").json()
 
@@ -203,7 +207,7 @@ def test_an_extra_field_gets_its_own_column_so_nothing_is_hidden(
 
 def far_past_the_sniff_sample(path: Path, odd_row: str) -> Path:
     rows = "".join(f"{number},name{number}\n" for number in range(1, 100_001))
-    path.write_text("id,name\n" + rows + odd_row + rows)
+    path.write_text("id,name\n" + rows + odd_row + rows, encoding="utf-8", newline="")
     return path
 
 
@@ -291,7 +295,11 @@ def test_a_file_rewritten_between_pages_shows_its_current_data(
     path = numbered_csv(tmp_path / "people.csv", 120)
     source = connect(client, path)
 
-    path.write_text("code,city,country\nA,Paris,France\nB,Lyon,France\n")
+    path.write_text(
+        "code,city,country\nA,Paris,France\nB,Lyon,France\n",
+        encoding="utf-8",
+        newline="",
+    )
     page = client.get(f"/api/sources/{source}/rows").json()
 
     assert names(page) == ["code", "city", "country"]
@@ -338,7 +346,11 @@ def test_html_in_a_cell_comes_back_unchanged_as_text(
 ) -> None:
     # CFX-APP-first-slice/AC-29: the screen shows it as text, so the API must not alter it.
     path = tmp_path / "html.csv"
-    path.write_text('id,note\n1,"' + SCRIPT_TEXT.replace('"', '""') + '"\n')
+    path.write_text(
+        'id,note\n1,"' + SCRIPT_TEXT.replace('"', '""') + '"\n',
+        encoding="utf-8",
+        newline="",
+    )
 
     response = client.get(f"/api/sources/{connect(client, path)}/rows")
 
@@ -355,7 +367,7 @@ def test_a_cell_over_1000_characters_is_cut_and_marked(
 ) -> None:
     # CFX-APP-first-slice/AC-29
     path = tmp_path / "long.csv"
-    path.write_text(f"id,note\n1,{'é' * length}\n2,short\n")
+    path.write_text(f"id,note\n1,{'é' * length}\n2,short\n", encoding="utf-8", newline="")
 
     page = client.get(f"/api/sources/{connect(client, path)}/rows").json()
 
@@ -374,14 +386,19 @@ def test_an_empty_cell_is_not_marked_as_cut(client: TestClient) -> None:
 
 
 def everything_stored(workspace_dir: Path) -> bytes:
-    """Raw bytes as well as a dump, because deleted rows stay in SQLite's free pages."""
+    """Raw bytes as well as a dump, because deleted rows stay in SQLite's free pages.
+
+    The lock file holds no data, and Windows won't let anyone read it while the workspace is open.
+    """
     connection = sqlite3.connect(workspace_dir / "workspace.db")
     try:
         connection.execute("PRAGMA wal_checkpoint(TRUNCATE)")
     finally:
         connection.close()
     return b"".join(
-        entry.read_bytes() for entry in workspace_dir.rglob("*") if entry.is_file()
+        entry.read_bytes()
+        for entry in workspace_dir.rglob("*")
+        if entry.is_file() and entry.name != LOCK_NAME
     )
 
 
@@ -446,7 +463,7 @@ def test_the_preview_reports_how_many_lines_it_skipped_above_the_table(
 ) -> None:
     # CFX-APP-first-slice/AC-27: DuckDB can't tell a title line from real rows, so it must be said.
     path = tmp_path / "skips.csv"
-    path.write_text(contents)
+    path.write_text(contents, encoding="utf-8", newline="")
 
     page = client.get(f"/api/sources/{connect(client, path)}/rows").json()
 
@@ -459,7 +476,11 @@ def test_skipped_lines_are_reported_on_later_pages_too(
 ) -> None:
     # CFX-APP-first-slice/AC-27
     path = numbered_csv(tmp_path / "people.csv", 120)
-    path.write_text("Sales report\n" + path.read_text())
+    path.write_text(
+        "Sales report\n" + path.read_text(encoding="utf-8"),
+        encoding="utf-8",
+        newline="",
+    )
     source = connect(client, path)
 
     page = client.get(f"/api/sources/{source}/rows", params={"offset": 50}).json()
@@ -482,7 +503,11 @@ def test_a_title_line_and_a_late_short_row_keep_the_same_columns_on_every_page(
     # CFX-APP-first-slice/AC-27 and CFX-APP-first-slice/AC-31: the page past the short row is read
     # with padding, which must not bring the title line back as the column name.
     path = far_past_the_sniff_sample(tmp_path / "late.csv", "x\n")
-    path.write_text("Sales report\n" + path.read_text())
+    path.write_text(
+        "Sales report\n" + path.read_text(encoding="utf-8"),
+        encoding="utf-8",
+        newline="",
+    )
     source = connect(client, path)
 
     first = client.get(f"/api/sources/{source}/rows").json()
@@ -629,7 +654,7 @@ def test_rows_starting_with_a_hash_are_shown(
 ) -> None:
     # CFX-APP-first-slice/AC-27: found reviewing T06, DuckDB can decide # marks comments.
     path = tmp_path / "hash.csv"
-    path.write_text(contents)
+    path.write_text(contents, encoding="utf-8", newline="")
 
     assert every_row(client, connect(client, path)) == expected
 
@@ -640,7 +665,11 @@ def test_a_hash_in_every_second_row_keeps_every_row(
     # CFX-APP-first-slice/AC-27
     path = tmp_path / "hash.csv"
     rows = [[f"#{n}" if n % 2 else str(n), f"x{n}"] for n in range(60)]
-    path.write_text("id,name\n" + "".join(f"{a},{b}\n" for a, b in rows))
+    path.write_text(
+        "id,name\n" + "".join(f"{a},{b}\n" for a, b in rows),
+        encoding="utf-8",
+        newline="",
+    )
 
     assert every_row(client, connect(client, path)) == rows
 
@@ -674,7 +703,7 @@ def test_a_line_break_in_quotes_and_an_uneven_row_can_both_be_shown(
 ) -> None:
     # CFX-APP-first-slice/AC-31: found reviewing T06, every page of this file gave an error.
     path = tmp_path / "both.csv"
-    path.write_text('id,note,z\n1,"l1\nl2",z\n2\n3,c,z\n')
+    path.write_text('id,note,z\n1,"l1\nl2",z\n2\n3,c,z\n', encoding="utf-8", newline="")
 
     assert every_row(client, connect(client, path)) == [
         ["1", "l1\nl2", "z"],
@@ -710,7 +739,7 @@ def test_a_first_quote_after_the_sample_is_still_read_as_a_quote(
 ) -> None:
     # CFX-APP-first-slice/AC-27: DuckDB decides how a file is quoted from a sample of its start.
     path = tmp_path / "late.csv"
-    path.write_text("id,note\n" + PLAIN_ROWS + late_rows)
+    path.write_text("id,note\n" + PLAIN_ROWS + late_rows, encoding="utf-8", newline="")
     source = connect(client, path)
 
     page = client.get(f"/api/sources/{source}/rows", params={"offset": 30_000})
@@ -725,7 +754,11 @@ def test_a_late_quote_that_never_closes_may_lose_the_rows_after_it(
     # CFX-APP-first-slice/AC-27: the accepted limit, for malformed files only. If this starts
     # failing, DuckDB has improved, so the limit can come out of AC-27.
     path = tmp_path / "late.csv"
-    path.write_text("id,note\n" + PLAIN_ROWS + '30001,"oops\n30002,ok\n')
+    path.write_text(
+        "id,note\n" + PLAIN_ROWS + '30001,"oops\n30002,ok\n',
+        encoding="utf-8",
+        newline="",
+    )
     source = connect(client, path)
 
     page = client.get(f"/api/sources/{source}/rows", params={"offset": 30_000}).json()
@@ -756,7 +789,7 @@ def test_quoting_seen_at_the_start_of_a_file_is_kept(
 ) -> None:
     # CFX-APP-first-slice/AC-27: the standard quote is only for files whose sample shows none.
     path = tmp_path / "quoted.csv"
-    path.write_text(contents)
+    path.write_text(contents, encoding="utf-8", newline="")
 
     page = client.get(f"/api/sources/{connect(client, path)}/rows").json()
 
@@ -802,7 +835,7 @@ def test_a_long_column_name_is_cut_and_marked(
 ) -> None:
     # CFX-APP-first-slice/AC-29: found reviewing T06.
     path = tmp_path / "long.csv"
-    path.write_text(f"id,{'h' * 5000}\n1,a\n2,b\n")
+    path.write_text(f"id,{'h' * 5000}\n1,a\n2,b\n", encoding="utf-8", newline="")
 
     page = client.get(f"/api/sources/{connect(client, path)}/rows").json()
 
@@ -854,7 +887,7 @@ def test_a_title_line_is_found_in_a_plain_file_named_like_a_compressed_one(
 ) -> None:
     # CFX-APP-first-slice/AC-27: the skip count comes from its own sniff, which must not decompress.
     path = tmp_path / "titled.csv.gz"
-    path.write_text("Sales report\nid,name\n1,Ann\n2,Bob\n")
+    path.write_text("Sales report\nid,name\n1,Ann\n2,Bob\n", encoding="utf-8", newline="")
 
     page = client.get(f"/api/sources/{connect(client, path)}/rows").json()
 
@@ -868,7 +901,9 @@ def test_a_quoted_file_keeps_the_columns_it_was_connected_with(
     # CFX-APP-first-slice/AC-27: reading padded here would bring the real header back as a row.
     path = tmp_path / "short_header.csv"
     path.write_text(
-        'name,city\n"Ann","Paris","France"\n"Bob","Lyon","France"\n"Cid","Nice","France"\n'
+        'name,city\n"Ann","Paris","France"\n"Bob","Lyon","France"\n"Cid","Nice","France"\n',
+        encoding="utf-8",
+        newline="",
     )
     connected = client.post("/api/sources", json={"path": str(path)}).json()
 
@@ -883,7 +918,7 @@ def test_comment_lines_above_and_inside_a_table_hide_nothing(
 ) -> None:
     # CFX-APP-first-slice/AC-27: comments are off for the sniff too, so it agrees with the read.
     path = tmp_path / "comments.csv"
-    path.write_text("# a\nid,name\n1,a\n2,b\n# b\n3,c\n4,d\n")
+    path.write_text("# a\nid,name\n1,a\n2,b\n# b\n3,c\n4,d\n", encoding="utf-8", newline="")
 
     page = client.get(f"/api/sources/{connect(client, path)}/rows").json()
 
@@ -899,7 +934,9 @@ def test_a_late_extra_field_is_an_error_even_if_an_early_row_is_short(
     # extra field in silence when it was also allowed to pad.
     path = tmp_path / "uneven.csv"
     path.write_text(
-        "id,name\n1,a\n2\n" + PLAIN_ROWS + "LATE,private,extra\n" + PLAIN_ROWS
+        "id,name\n1,a\n2\n" + PLAIN_ROWS + "LATE,private,extra\n" + PLAIN_ROWS,
+        encoding="utf-8",
+        newline="",
     )
     source = connect(client, path)
 

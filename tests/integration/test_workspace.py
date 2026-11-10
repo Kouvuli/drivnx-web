@@ -21,7 +21,7 @@ def test_a_non_empty_directory_that_is_not_a_workspace_is_refused_and_left_alone
     documents = tmp_path / "Documents"
     documents.mkdir(mode=0o755)
     documents.chmod(0o755)
-    (documents / "taxes.csv").write_text("a,b\n")
+    (documents / "taxes.csv").write_text("a,b\n", encoding="utf-8", newline="")
     before = sorted(entry.name for entry in documents.iterdir())
 
     drivnx = start_drivnx("--no-browser", workspace=documents)
@@ -61,11 +61,11 @@ def test_an_existing_workspace_opens_again(
     first.wait_for_launch()
     first.process.terminate()
     first.process.wait(timeout=10)
-    (workspace / "notes.txt").write_text("kept")
+    (workspace / "notes.txt").write_text("kept", encoding="utf-8", newline="")
 
     start_drivnx("--no-browser", workspace=workspace).wait_for_launch()
 
-    assert (workspace / "notes.txt").read_text() == "kept"
+    assert (workspace / "notes.txt").read_text(encoding="utf-8") == "kept"
 
 
 @posix_only
@@ -101,7 +101,7 @@ def test_a_file_instead_of_a_directory_gets_a_clear_error(
 ) -> None:
     # CFX-APP-first-slice/AC-03
     file = tmp_path / "file.txt"
-    file.write_text("x")
+    file.write_text("x", encoding="utf-8", newline="")
 
     drivnx = start_drivnx("--no-browser", workspace=file)
 
@@ -109,7 +109,7 @@ def test_a_file_instead_of_a_directory_gets_a_clear_error(
     output = drivnx.all_output()
     assert "isn't a directory" in output
     assert "Traceback" not in output
-    assert file.read_text() == "x"
+    assert file.read_text(encoding="utf-8") == "x"
 
 
 def test_a_second_runtime_on_the_same_workspace_is_refused(

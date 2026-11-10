@@ -44,6 +44,9 @@ CREDENTIAL_SHAPES = {
 posix_only = pytest.mark.skipif(
     os.name == "nt", reason="uses POSIX signals, modes, links or shell scripts"
 )
+windows_forbids = pytest.mark.skipif(
+    os.name == "nt", reason='Windows doesn\'t allow * ? " in file or folder names'
+)
 linux_only = pytest.mark.skipif(
     sys.platform != "linux",
     reason="the DISPLAY rules are Linux's, and elsewhere this could open a real browser",
@@ -337,7 +340,7 @@ def client(tmp_path: Path, workspace_dir: Path) -> Iterator[TestClient]:
     """A signed-in client for the real app on a real workspace, without a server process."""
     ui_dir = tmp_path / "ui"
     ui_dir.mkdir()
-    (ui_dir / "index.html").write_text("<html></html>")
+    (ui_dir / "index.html").write_text("<html></html>", encoding="utf-8", newline="")
     workspace = open_workspace(workspace_dir)
     session = LaunchSession(CLIENT_PORT)
     client = TestClient(

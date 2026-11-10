@@ -20,7 +20,7 @@ def app(start_drivnx: StartDrivnX, page: Page) -> Page:
 def people(tmp_path: Path) -> Path:
     path = tmp_path / "people.csv"
     rows = "".join(f"{number},name{number}\n" for number in range(1, 121))
-    path.write_text("id,name\n" + rows)
+    path.write_text("id,name\n" + rows, encoding="utf-8", newline="")
     return path
 
 
@@ -80,7 +80,11 @@ def test_script_text_in_a_cell_is_shown_and_nothing_runs(
     # CFX-APP-first-slice/AC-29
     script = '<script>window.ran = true</script><img src=x onerror="window.ran = true">'
     path = tmp_path / "html.csv"
-    path.write_text('id,note\n1,"' + script.replace('"', '""') + '"\n')
+    path.write_text(
+        'id,note\n1,"' + script.replace('"', '""') + '"\n',
+        encoding="utf-8",
+        newline="",
+    )
     dialogs: list[str] = []
     app.on("dialog", lambda dialog: dialogs.append(dialog.message))
 
@@ -96,7 +100,7 @@ def test_script_text_in_a_cell_is_shown_and_nothing_runs(
 def test_a_long_cell_is_cut_and_marked(app: Page, tmp_path: Path) -> None:
     # CFX-APP-first-slice/AC-29
     path = tmp_path / "long.csv"
-    path.write_text(f"id,note\n1,{'x' * 5000}\n2,short\n")
+    path.write_text(f"id,note\n1,{'x' * 5000}\n2,short\n", encoding="utf-8", newline="")
 
     connect(app, path)
 

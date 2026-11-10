@@ -22,7 +22,7 @@ def run_detail(client: TestClient, run: dict) -> dict:
 def test_a_run_on_an_unchanged_file_is_not_out_of_date(client: TestClient, tmp_path: Path) -> None:
     # CFX-APP-csv-profile/AC-37
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     run = finished(client, start(client, connect(client, path)))
 
     assert run_detail(client, run)["file_changed"] is False
@@ -33,11 +33,11 @@ def test_a_file_whose_size_changed_since_the_run_is_said_to_have_changed(
 ) -> None:
     # CFX-APP-csv-profile/AC-37
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     run = finished(client, start(client, connect(client, path)))
     stat = path.stat()
 
-    path.write_text("id,name\n1,Ann\n2,Bob\n")
+    path.write_text("id,name\n1,Ann\n2,Bob\n", encoding="utf-8", newline="")
     os.utime(path, ns=(stat.st_atime_ns, stat.st_mtime_ns))
 
     assert run_detail(client, run)["file_changed"] is True
@@ -48,7 +48,7 @@ def test_a_file_modified_since_the_run_is_said_to_have_changed(
 ) -> None:
     # CFX-APP-csv-profile/AC-37: the same size, written again later.
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     run = finished(client, start(client, connect(client, path)))
     stat = path.stat()
 
@@ -62,7 +62,7 @@ def test_a_file_that_is_gone_says_nothing_about_being_out_of_date(
 ) -> None:
     # CFX-APP-csv-profile/AC-37: there's nothing to compare, and the source already says it's gone.
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     run = finished(client, start(client, connect(client, path)))
 
     path.unlink()
@@ -75,10 +75,10 @@ def test_every_run_of_a_source_is_listed_and_any_completed_one_opens(
 ) -> None:
     # CFX-APP-csv-profile/AC-35
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n")
+    path.write_text("id,name\n1,Ann\n", encoding="utf-8", newline="")
     source = connect(client, path)
     first = finished(client, start(client, source))
-    path.write_text("id,name\n1,Ann\n2,Bob\n")
+    path.write_text("id,name\n1,Ann\n2,Bob\n", encoding="utf-8", newline="")
     second = finished(client, start(client, source, "full"))
 
     listed = client.get("/api/profile-runs").json()
@@ -101,7 +101,7 @@ def test_a_run_made_before_a_correction_still_opens_on_its_earlier_settings(
 ) -> None:
     # CFX-APP-csv-profile/AC-36
     path = tmp_path / "people.csv"
-    path.write_text("id,name\n1,Ann\n2,Bob\n")
+    path.write_text("id,name\n1,Ann\n2,Bob\n", encoding="utf-8", newline="")
     source = connect(client, path)
     run = finished(client, start(client, source))
     response = client.put(

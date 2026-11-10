@@ -103,7 +103,7 @@ def test_a_bracket_in_the_name_opens_that_file_and_not_a_similar_one(
 ) -> None:
     # Found while building T05: DuckDB read report[1].csv as a pattern, and opened report1.csv.
     shutil.copy(CSV_DIR / "comma_utf8.csv", tmp_path / "report[1].csv")
-    (tmp_path / "report1.csv").write_text("wrong,file\n1,2\n")
+    (tmp_path / "report1.csv").write_text("wrong,file\n1,2\n", encoding="utf-8", newline="")
 
     connect(app, tmp_path / "report[1].csv")
 

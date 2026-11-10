@@ -8,7 +8,7 @@ from local_api.session import LaunchSession
 
 def test_generated_api_docs_are_off(tmp_path: Path) -> None:
     # They load scripts from a CDN, and nothing may leave the machine.
-    (tmp_path / "index.html").write_text("<html></html>")
+    (tmp_path / "index.html").write_text("<html></html>", encoding="utf-8", newline="")
     workspace = open_workspace(tmp_path / "workspace")
     client = TestClient(create_app(LaunchSession(port=1), 1, workspace, tmp_path))
 
