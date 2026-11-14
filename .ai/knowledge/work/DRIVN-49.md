@@ -7,7 +7,7 @@ feature_revision: 2
 stories: [US-02]
 criteria: [AC-08, AC-09, AC-10, AC-11, AC-13]
 blocked_by: [DRIVN-47]
-state: blocked
+state: ready
 external_key: DRIVN-49
 status: CONFIRMED
 ---
@@ -33,4 +33,4 @@ Integration tests against the fixture for each kind of object, foreign tables le
 AC-13 is shared with DRIVN-51: the refresh is here, refusing a run on a changed object is there.
 
 ## Blocked by
-DRIVN-47
+DRIVN-47, done (PR #19).
